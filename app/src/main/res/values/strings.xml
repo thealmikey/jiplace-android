@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">JiPlace</string>
+    <string name="dismiss_jiplace">Dismiss</string>
+    <string name="other">other</string>
+    <string name="done">Save</string>
+    <string name="save_jiplace_hint_text">Add text to remember place
+        e.g hair doctor new year in city
+    </string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="later">Later</string>
+    <string name="title_activity_jiplace_maps">Map</string>
+</resources>

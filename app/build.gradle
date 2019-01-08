@@ -1,0 +1,139 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'com.google.gms.google-services'
+
+apply plugin: "androidx.navigation.safeargs"
+
+apply plugin: 'kotlin-kapt'
+
+
+
+android {
+
+    repositories {
+        maven { url "https://maven.google.com" }
+        maven { url "http://dl.bintray.com/chat-sdk/chat-sdk-android" }
+        maven { url 'https://jitpack.io' }
+        maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    compileSdkVersion 28
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
+        applicationId "com.almikey.jiplace"
+        minSdkVersion 16
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.0.0-beta01'
+    implementation 'androidx.core:core-ktx:1.1.0-alpha03'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.2'
+    implementation 'androidx.multidex:multidex:2.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+
+    implementation 'com.google.android.gms:play-services-maps:16.0.0'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    // https://mvnrepository.com/artifact/com.google.android.material/material
+    implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
+    implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
+    implementation 'com.afollestad.material-dialogs:input:2.0.0-rc7'
+
+    def nav_version = "1.0.0-alpha09"
+    implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version" // use -ktx for Kotlin
+    implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
+
+    def work_version = "1.0.0-beta01"
+
+    implementation "android.arch.work:work-runtime-ktx:$work_version" // use -ktx for Kotlin+Coroutines
+
+    // optional - RxJava2 support
+    implementation "android.arch.work:work-rxjava2:$work_version"
+
+    //coroutines
+    //https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-android
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.0'
+// https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-rx2
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.1.0'
+
+    //dagger 2
+//    implementation "com.google.dagger:dagger:2.20"
+//    implementation "com.google.dagger:dagger-android-support:2.20"
+//    kapt "com.google.dagger:dagger-compiler:2.20"
+//    kapt "com.google.dagger:dagger-android-processor:2.20"
+    implementation 'org.koin:koin-android:1.0.1'
+
+
+    implementation 'com.airbnb.android:lottie:2.8.0'
+
+    implementation 'com.xwray:groupie:2.3.0'
+    implementation 'com.xwray:groupie-kotlin-android-extensions:2.3.0'
+
+    implementation 'io.github.inflationx:calligraphy3:3.0.0'
+    implementation 'io.github.inflationx:viewpump:1.0.0'
+
+    implementation 'ru.cleverpumpkin:crunchycalendar:1.1.0'
+
+    implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.4.8'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.4.8'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.4.8'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.4.8'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.4.8'
+
+    //firebase
+    implementation 'com.google.firebase:firebase-core:16.0.6'
+    implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-storage:16.0.5'
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.google.firebase:firebase-auth:16.1.0'
+    implementation 'com.github.mukeshsolanki:country-picker-android:2.0.1'
+
+    //rooom database
+    def room_version = "2.1.0-alpha03"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version" // use kapt for Kotlin
+    // optional - RxJava support for Room
+    implementation "androidx.room:room-rxjava2:$room_version"
+    // optional - Coroutines support for Room
+    implementation "androidx.room:room-coroutines:$room_version"
+    // Test helpers
+    testImplementation "androidx.room:room-testing:$room_version"
+
+    def lifecycle_version = "2.0.0"
+
+    // ViewModel and LiveData
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version" // use kapt
+
+
+
+    implementation 'com.firebase:geofire-android:2.3.1'
+
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
+}

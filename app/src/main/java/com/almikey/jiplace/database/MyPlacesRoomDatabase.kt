@@ -1,0 +1,53 @@
+package com.almikey.jiplace.database
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import com.almikey.jiplace.model.MyPlace
+import com.almikey.myplace.service.MyPlacesDao
+import androidx.room.Room
+
+@Volatile
+private var INSTANCE: MyPlacesRoomDatabase? = null
+
+fun getDatabase(context: Context): MyPlacesRoomDatabase? {
+    if (INSTANCE == null) {
+        synchronized(MyPlacesRoomDatabase::class.java) {
+            if (INSTANCE == null) {
+                INSTANCE = Room.databaseBuilder(
+                    context.applicationContext,
+                    MyPlacesRoomDatabase::class.java, "myplaces_database"
+                )
+                    .build()
+            }
+        }
+    }
+    return INSTANCE
+}
+
+@Database(entities = arrayOf(MyPlace::class), version = 1)
+abstract class MyPlacesRoomDatabase : RoomDatabase() {
+
+    abstract fun myPlacesDao(): MyPlacesDao
+
+    companion object {
+
+        @Volatile
+        private var INSTANCE: MyPlacesRoomDatabase? = null
+
+        internal fun getDatabase(context: Context): MyPlacesRoomDatabase? {
+            if (INSTANCE == null) {
+                synchronized(MyPlacesRoomDatabase::class.java) {
+                    if (INSTANCE == null) {
+                        INSTANCE = Room.databaseBuilder(
+                            context.applicationContext,
+                            MyPlacesRoomDatabase::class.java, "myplaces_database"
+                        )
+                            .build()
+                    }
+                }
+            }
+            return INSTANCE
+        }
+    }
+}

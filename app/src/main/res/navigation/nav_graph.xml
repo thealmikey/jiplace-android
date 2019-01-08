@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/nav_graph"
+            app:startDestination="@id/theNewHome"
+>
+    <fragment
+            android:id="@+id/theLayout"
+            android:name="com.almikey.jiplace.ui.homepage.HomeFragment"
+            android:label="main_fragment"
+            tools:layout="@layout/fragment_home_jiplace"
+    />
+    <fragment
+            android:id="@+id/jiplaces"
+            android:name="com.almikey.jiplace.ui.my_places.MyPlacesFragment"
+            android:label="my places"
+            tools:layout="@layout/fragment_home_jiplace"
+    />
+    <fragment
+            android:id="@+id/theNewHome"
+            android:name="com.almikey.jiplace.ui.homepage.NewHomeFragment"
+            android:label="new_fragment"
+            tools:layout="@layout/fragment_new_home_jiplace"
+    />
+</navigation>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:id="@+id/jiplacesRecyclerview"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/gradient_list"
+>
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_marginBottom="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/jiplace_recyclerview"
+    >
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+</LinearLayout>
