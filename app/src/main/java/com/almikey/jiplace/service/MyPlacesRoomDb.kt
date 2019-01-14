@@ -13,15 +13,15 @@ class MyPlacesRoomDb:MyPlacesService{
     }
 
     override fun deleteJiplace(myPlace: MyPlace) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun updateJiplace(myPlace: MyPlace) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+      //  TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun getAllJiplace() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 }

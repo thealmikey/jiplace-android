@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 return@OnNavigationItemSelectedListener true
             }
             R.id.jiplace_myplaces_menu->{
-                findNavController(R.id.nav_host_fragment).navigate(R.id.myPlaces)
+                findNavController(R.id.nav_host_fragment).navigate(R.id.jiplaces)
                 return@OnNavigationItemSelectedListener true
             }
         }

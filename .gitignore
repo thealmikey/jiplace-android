@@ -15,7 +15,6 @@
 !/app/build/generated/source/navigation-args/debug/
 !/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out/
 !/app/build/generated/source/kapt/debug/
-/.gradle/
 /.idea/
 /gradle/
 /gradlew.bat
@@ -81,3 +80,12 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+.gitignore
+.idea/
+app/
+build.gradle
+gradle.properties
+gradle/
+gradlew
+gradlew.bat
+settings.gradle

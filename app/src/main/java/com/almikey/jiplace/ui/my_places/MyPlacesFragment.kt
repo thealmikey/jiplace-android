@@ -11,11 +11,18 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.almikey.jiplace.R
+import com.almikey.jiplace.model.MyLocation
+import com.almikey.jiplace.model.MyPlace
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
+import kotlinx.android.synthetic.main.item_jiplace.view.*
 
 import kotlinx.android.synthetic.main.jiplaces_recyclerview.*
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTime
+import java.util.*
+
 
 class MyPlacesFragment : Fragment() {
 
@@ -39,17 +46,31 @@ class MyPlacesFragment : Fragment() {
         mRecyclerview = view?.findViewById(R.id.jiplace_recyclerview) as RecyclerView
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
-        groupAdapter.add(Aplace())
-        groupAdapter.add(Aplace())
-        groupAdapter.add(Aplace())
-        groupAdapter.add(Aplace())
-        groupAdapter.add(Aplace())
-        groupAdapter.add(Aplace())
+
+        var myPlace1 = MyPlace(22, DateTime.now().toDate(),
+            MyLocation(33.toDouble(),44.toDouble()),"the one who knocks")
+        var myPlace2 = MyPlace(32, DateTime.now().toDate(),
+            MyLocation(33.toDouble(),44.toDouble()),"Heisenberg")
+        var myPlace3 = MyPlace(42, DateTime.now().toDate(),
+            MyLocation(33.toDouble(),44.toDouble()),"Science Jessee")
+
+
+        groupAdapter.add(MyPlaceItem(myPlace1))
+        groupAdapter.add(MyPlaceItem(myPlace2))
+        groupAdapter.add(MyPlaceItem(myPlace3))
         mRecyclerview.adapter = groupAdapter
     }
 
-    class Aplace():Item() {
+    class MyPlaceItem(var myPlace:MyPlace):Item() {
         override fun bind(viewHolder: ViewHolder, position: Int) {
+
+            val formatter= DateTimeFormat.forPattern("d MMMM")
+            val theDate = formatter.print(DateTime(myPlace.time))
+            viewHolder.itemView.jiplace_item_date.text =theDate
+            val formatter2 = DateTimeFormat.forPattern("hh:mm aa")
+            val theTime = formatter2.print(DateTime(myPlace.time))
+            viewHolder.itemView.jiplace_item_time.text =theTime
+            viewHolder.itemView.jiplace_item_hint.text = myPlace.hint
            return
         }
 

@@ -70,12 +70,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp">
             <TextView
+                    android:id="@+id/jiplace_item_hint"
                     android:layout_marginLeft="8dp"
                     android:layout_gravity="center"
                     android:textColor="@color/calendar_month_text_color"
                     android:text="The guys with the brilliant tomatoes ideas.What if tomatoes could get u high?"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView7" android:layout_weight="1"/>
+                    android:layout_height="wrap_content"
+            android:layout_weight="1"/>
             <View
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
