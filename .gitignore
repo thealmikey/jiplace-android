@@ -83,7 +83,6 @@ fastlane/readme.md
 .gitignore
 .idea/
 app/
-build.gradle
 gradle.properties
 gradle/
 gradlew

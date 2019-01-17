@@ -8,43 +8,25 @@
              tools:context=".ui.homepage.NewHomeFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-            android:textSize="22sp"
-            tools:text="hello world"
-            tools:textColor="@color/calendar_month_text_color"
-            android:textColor="#000"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/hello_blank_fragment" tools:layout_editor_absoluteY="16dp"
-            tools:layout_editor_absoluteX="160dp" android:id="@+id/myloc_tv"/>
 
     <Button
-            android:text="Location req"
-            android:id="@+id/locButton"
+            android:text="JiPlace Now"
+            android:id="@+id/jiPlaceNow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toTopOf="parent" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/myloc_tv" app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginEnd="128dp" android:layout_marginRight="128dp"
-            app:layout_constraintVertical_bias="0.499"/>
-    <TextView
-            android:textColor="#000"
-            android:text="Time btwn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/timeBetween" app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp" android:layout_marginTop="140dp"
-            app:layout_constraintTop_toTopOf="@+id/myloc_tv"/>
+            android:layout_marginTop="164dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="148dp" android:layout_marginRight="148dp"
+    />
     <Button
-            android:text="submit jiplace"
+            android:text="JiPlace Other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/button" android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/locButton" android:layout_marginBottom="8dp"
+            android:id="@+id/jiPlaceOther" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/jiPlaceNow" android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginLeft="172dp" android:layout_marginStart="172dp"
-            app:layout_constraintVertical_bias="0.571"/>
+            android:layout_marginLeft="132dp" android:layout_marginStart="132dp"
+            app:layout_constraintVertical_bias="0.366"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

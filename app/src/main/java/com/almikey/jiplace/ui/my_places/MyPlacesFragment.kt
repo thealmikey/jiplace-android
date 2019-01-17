@@ -16,15 +16,19 @@ import com.almikey.jiplace.model.MyPlace
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.item_jiplace.view.*
 
 import kotlinx.android.synthetic.main.jiplaces_recyclerview.*
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTime
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 
 class MyPlacesFragment : Fragment() {
+
+    val myPlacesViewModel: MyPlacesViewModel by viewModel()
 
     lateinit var mRecyclerview:RecyclerView
 
@@ -47,13 +51,18 @@ class MyPlacesFragment : Fragment() {
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
 
-        var myPlace1 = MyPlace(22, DateTime.now().toDate(),
-            MyLocation(33.toDouble(),44.toDouble()),"the one who knocks")
-        var myPlace2 = MyPlace(32, DateTime.now().toDate(),
-            MyLocation(33.toDouble(),44.toDouble()),"Heisenberg")
-        var myPlace3 = MyPlace(42, DateTime.now().toDate(),
-            MyLocation(33.toDouble(),44.toDouble()),"Science Jessee")
+        var myPlace1 = MyPlace(22, time=Date(),
+           location =  MyLocation(33.toFloat(),44.toFloat()),hint = "the one who knocks")
+        var myPlace2 = MyPlace(32, time=DateTime.now().toDate(),
+           location = MyLocation(33.toFloat(),44.toFloat()),hint = "Heisenberg")
+        var myPlace3 = MyPlace(42, time = DateTime.now().toDate(),
+            location = MyLocation(33.toFloat(),44.toFloat()),hint = "Science Jessee")
 
+        myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread()).subscribe {
+            it.forEach {
+               groupAdapter.add(MyPlaceItem(it))
+            }
+        }
 
         groupAdapter.add(MyPlaceItem(myPlace1))
         groupAdapter.add(MyPlaceItem(myPlace2))
@@ -71,6 +80,8 @@ class MyPlacesFragment : Fragment() {
             val theTime = formatter2.print(DateTime(myPlace.time))
             viewHolder.itemView.jiplace_item_time.text =theTime
             viewHolder.itemView.jiplace_item_hint.text = myPlace.hint
+            viewHolder.itemView.theLat.text = myPlace.location.latitude.toString()
+            viewHolder.itemView.theLon.text = myPlace.location.longitude.toString()
            return
         }
 
@@ -78,5 +89,7 @@ class MyPlacesFragment : Fragment() {
            return R.layout.item_jiplace
         }
     }
+
+
 
 }

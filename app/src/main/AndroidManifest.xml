@@ -9,9 +9,10 @@
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the 'MyLocation' functionality.
     -->
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
-    <dist:module dist:instant="true"/>
+    <dist:module dist:instant="false"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -26,6 +27,11 @@
             android:theme="@style/AppTheme"
             tools:node="merge">
 
+
+        <uses-library android:name="android.test.runner"
+                      android:required="false" />
+
+
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -38,10 +44,10 @@
                 android:name="com.google.android.geo.API_KEY"
                 android:value="@string/google_maps_key"/>
 
-        <activity
-                android:name=".ui.map.JiplaceMapsActivity"
-                android:label="@string/title_activity_jiplace_maps">
-        </activity>
+        <!--<activity-->
+                <!--android:name=".ui.map.JiplaceMapsActivity"-->
+                <!--android:label="@string/title_activity_jiplace_maps">-->
+        <!--</activity>-->
         <activity
                 android:name=".MainActivity"
                 android:noHistory="false">

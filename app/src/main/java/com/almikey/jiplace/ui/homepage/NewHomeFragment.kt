@@ -15,62 +15,43 @@ import android.widget.EditText
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
+import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-//import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 
 import com.almikey.jiplace.R
+import com.almikey.jiplace.model.MyPlace
+import com.almikey.jiplace.repository.MyPlacesRepository
 import com.almikey.jiplace.ui.my_places.MyPlacesViewModel
-import com.almikey.jiplace.util.CurrentLocationListener
-import com.almikey.jiplace.util.CurrentLocationRx
 import com.almikey.jiplace.worker.MyLocationWorker
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import io.reactivex.Observable
-import io.reactivex.Observer
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-
+import io.reactivex.Scheduler
+import io.reactivex.internal.operators.completable.CompletableFromAction
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_new_home_jiplace.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.core.parameter.parametersOf
+import java.util.*
 
 class NewHomeFragment : Fragment() {
 
 
-
-    val myActivity:Activity by lazy<Activity>{
-        this.activity as Activity
-    }
-
-    val currLocRx:CurrentLocationRx by inject()
-
     val myPlacesViewModel: MyPlacesViewModel by viewModel()
 
+        val myPlacesRepo: MyPlacesRepository by inject()
         private lateinit var fusedLocationClient: FusedLocationProviderClient
         private lateinit var mLocationCallback: LocationCallback
         val REQUEST_CHECK_SETTINGS = 5
 
 
         fun startDialogForHint() {
-            lateinit var theRes: String
-            var dialog = MaterialDialog(activity as Activity).show {
-                customView(R.layout.jiplace_description_hint)
-            }
-            val customView = dialog.getCustomView()
-            var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
-            theText?.text.toString()
 
-            dialog.positiveButton {
-                theRes = theText?.text.toString()
-                Log.d("on save dialog", theRes)
-            }
         }
 
 
@@ -96,6 +77,7 @@ class NewHomeFragment : Fragment() {
           var theTask =  getCurrentLocationSettings(createLocationRequest(),activity as Activity)
             theTask.addOnSuccessListener {
                     emitter.onNext(true)
+                emitter.onComplete()
             }
            var theFail = theTask.addOnFailureListener { exception ->
                 if (exception is ResolvableApiException){
@@ -132,26 +114,76 @@ class NewHomeFragment : Fragment() {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
-            locButton.setOnClickListener {
+            jiPlaceNow.setOnClickListener {
+                var theUUId = UUID.randomUUID().toString()
+                fun askForHint():Unit{
+                    lateinit var theRes: String
+                    var dialog = MaterialDialog(activity as Activity).show {
+                        customView(R.layout.jiplace_description_hint)
+                    }
+                    val customView = dialog.getCustomView()
+                    var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
+                    theText?.text.toString()
+
+                    dialog.negativeButton {
+                        CompletableFromAction{
+                            myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId))
+                        }.subscribeOn(Schedulers.io()).subscribe({
+                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").
+                                setInputData(
+                                    Data.Builder()
+                                        .putString("UuidKey", theUUId).build()
+                                )
+                                .build()
+                            WorkManager.getInstance().enqueue(locWorker)
+                        },{err->Log.d("the error","many of horror:${err.message}")})
+                    }
+
+                    dialog.positiveButton {
+                        theRes = theText?.text.toString()
+                        CompletableFromAction{
+                            myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId,hint = theRes))
+                      }.subscribeOn(Schedulers.io()).subscribe ({
+                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").
+                                setInputData(
+                                    Data.Builder()
+                                        .putString("UuidKey", theUUId).build()
+                                )
+                                .build()
+                            WorkManager.getInstance().enqueue(locWorker)
+                        },{err->Log.d("the error","many of horror:${err.message}")})
+                    }
+
+                    return Unit
+                }
                 var permissionStatus =
                     ContextCompat.checkSelfPermission(activity as Activity, "android.Manifest.permission.ACCESS_FINE_LOCATION")
-                if(permissionStatus!= PackageManager.PERMISSION_GRANTED) {
+                if(permissionStatus == PackageManager.PERMISSION_GRANTED) {
+                locationSettingsObservable().subscribe{
+                    if(it){
+                        askForHint()
+                    }
+                }
+            }
+                else if(permissionStatus!= PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(
                         activity as Activity,
                         arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION),
                         1
                     )
-                        var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx")
-                            .build()
-                    WorkManager.getInstance().enqueue(locWorker)
-                }else{
-                    var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx")
-                        .build()
-                    WorkManager.getInstance().enqueue(locWorker)
+                    locationSettingsObservable().subscribe{
+                        if(it){
+                            askForHint()
+                        }
+                    }
+
                 }
             }
         }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+
+    }
  }
 
 

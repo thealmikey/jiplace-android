@@ -17,9 +17,6 @@ import io.github.inflationx.calligraphy3.CalligraphyInterceptor
 import io.github.inflationx.viewpump.ViewPump
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import org.koin.android.ext.android.startKoin
-import org.koin.androidx.viewmodel.ext.koin.viewModel
-import org.koin.dsl.module.module
-
 
 class MainApplication: MultiDexApplication() {
 
@@ -47,7 +44,7 @@ class MainApplication: MultiDexApplication() {
         }
         FirebaseFileStorageModule.activate()
         FirebasePushModule.activate()
-        startKoin(this, listOf(KoinModules.modules))
+        startKoin (this, listOf(KoinModules.modules))
     }
 
 

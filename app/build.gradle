@@ -14,7 +14,13 @@ apply plugin: 'kotlin-kapt'
 
 android {
 
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    useLibrary 'android.test.mock'
+
+
     repositories {
+        jcenter()
         maven { url "https://maven.google.com" }
         maven { url "http://dl.bintray.com/chat-sdk/chat-sdk-android" }
         maven { url 'https://jitpack.io' }
@@ -43,6 +49,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -56,13 +67,46 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+    //testing libraries
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    testImplementation 'org.hamcrest:hamcrest:2.1'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    androidTestImplementation "org.koin:koin-test:1.0.2"
+    testImplementation 'org.robolectric:robolectric:4.1'
+    testImplementation "com.google.truth:truth:0.42"
     // https://mvnrepository.com/artifact/com.google.android.material/material
     implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
     implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
     implementation 'com.afollestad.material-dialogs:input:2.0.0-rc7'
+
+
+    // Core library
+    androidTestImplementation 'androidx.test:core:1.0.0'
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test:rules:1.1.0'
+
+    // Assertions
+    androidTestImplementation 'androidx.test.ext:junit:1.0.0'
+    androidTestImplementation 'androidx.test.ext:truth:1.0.0'
+    androidTestImplementation 'com.google.truth:truth:0.42'
+
+    // Espresso dependencies
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-accessibility:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.1.0'
+    androidTestImplementation 'androidx.test.espresso.idling:idling-concurrent:3.1.0'
+
+    // The following Espresso dependency can be either "implementation"
+    // or "androidTestImplementation", depending on whether you want the
+    // dependency to appear on your APK's compile classpath or the test APK
+    // classpath.
+    androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.1.0'
+
 
     def nav_version = "1.0.0-alpha09"
     implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version" // use -ktx for Kotlin
@@ -123,14 +167,15 @@ dependencies {
     testImplementation "androidx.room:room-testing:$room_version"
 
     def lifecycle_version = "2.0.0"
-
-    // ViewModel and LiveData
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version" // use kapt
 
     implementation 'org.webrtc:google-webrtc:1.0.+'
 
     implementation 'com.firebase:geofire-android:2.3.1'
-
     implementation 'de.hdodenhof:circleimageview:2.2.0'
+
+    def arrow_version = "0.8.2"
+    implementation "io.arrow-kt:arrow-core:$arrow_version"
+
 }

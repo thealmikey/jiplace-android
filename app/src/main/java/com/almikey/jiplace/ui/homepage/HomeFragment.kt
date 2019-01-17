@@ -31,7 +31,6 @@ import kotlinx.android.synthetic.main.fragment_home_jiplace.*
 
 import com.almikey.jiplace.R
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
-import com.google.android.gms.location.places.ui.PlacePicker
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import com.google.android.gms.location.places.*

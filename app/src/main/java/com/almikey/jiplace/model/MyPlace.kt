@@ -8,6 +8,7 @@ import java.util.*
 
 @Entity
 data class MyPlace(
-    @PrimaryKey(autoGenerate = true) var jid: Int,
-    var time: Date, @Embedded var location: MyLocation, var hint:String="",
+    @PrimaryKey(autoGenerate = true) var jid: Int=0,
+    var uuidString:String="",
+    var time: Date=Date(), @Embedded var location: MyLocation=MyLocation(0f,0f), var hint:String="",
     var image:String="", var people:Int=0, var newPeople:Int=0)
