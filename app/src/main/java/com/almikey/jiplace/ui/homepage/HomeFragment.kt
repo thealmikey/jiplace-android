@@ -24,9 +24,6 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.input.input
-
-
-
 import kotlinx.android.synthetic.main.fragment_home_jiplace.*
 
 import com.almikey.jiplace.R

@@ -1,27 +1,37 @@
 package com.almikey.jiplace
 
-import android.app.Application
+import android.util.Log
 import androidx.multidex.MultiDexApplication
 import co.chatsdk.core.error.ChatSDKException
 import co.chatsdk.core.session.ChatSDK
-import co.chatsdk.core.session.Configuration
 import co.chatsdk.firebase.FirebaseNetworkAdapter
 import co.chatsdk.firebase.file_storage.FirebaseFileStorageModule
 import co.chatsdk.firebase.push.FirebasePushModule
 import co.chatsdk.ui.manager.BaseInterfaceAdapter
 import com.almikey.jiplace.di.KoinModules
-import com.almikey.jiplace.repository.MyPlacesRepository
-import com.almikey.jiplace.ui.my_places.MyPlacesViewModel
 import io.github.inflationx.calligraphy3.CalligraphyConfig
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor
 import io.github.inflationx.viewpump.ViewPump
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import org.koin.android.ext.android.startKoin
+import com.facebook.common.logging.FLog.setMinimumLoggingLevel
+import androidx.work.WorkManager
+
+
 
 class MainApplication: MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
+
+        WorkManager.initialize(
+            this,
+            androidx.work.Configuration.Builder()
+                .setMinimumLoggingLevel(Log.VERBOSE)
+                .setMaxSchedulerLimit(50)
+                .build()
+        )
+
         ViewPump.init(
             ViewPump.builder()
                 .addInterceptor(
@@ -34,8 +44,10 @@ class MainApplication: MultiDexApplication() {
                 )
                 .build()
         )
+
+
         val context = applicationContext
-        val builder = Configuration.Builder(context)
+        val builder = co.chatsdk.core.session.Configuration.Builder(context)
         builder.firebaseRootPath("prod")
         builder.firebaseDatabaseURL("https://jiplace.firebaseio.com")
         try {

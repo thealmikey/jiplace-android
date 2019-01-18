@@ -3,13 +3,11 @@
           xmlns:dist="http://schemas.android.com/apk/distribution"
           xmlns:tools="http://schemas.android.com/tools"
           package="com.almikey.jiplace">
-
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the 'MyLocation' functionality.
     -->
-
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <dist:module dist:instant="false"/>
@@ -26,12 +24,12 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:node="merge">
+        <activity android:name=".ui.activity.CrunchyCalendary">
+        </activity>
 
-
-        <uses-library android:name="android.test.runner"
-                      android:required="false" />
-
-
+        <uses-library
+                android:name="android.test.runner"
+                android:required="false"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -42,12 +40,10 @@
         -->
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value="@string/google_maps_key"/>
-
-        <!--<activity-->
-                <!--android:name=".ui.map.JiplaceMapsActivity"-->
-                <!--android:label="@string/title_activity_jiplace_maps">-->
-        <!--</activity>-->
+                android:value="@string/google_maps_key"/> <!-- <activity -->
+        <!-- android:name=".ui.map.JiplaceMapsActivity" -->
+        <!-- android:label="@string/title_activity_jiplace_maps"> -->
+        <!-- </activity> -->
         <activity
                 android:name=".MainActivity"
                 android:noHistory="false">
@@ -63,6 +59,10 @@
                 android:noHistory="false"
                 android:parentActivityName=".MainActivity"
                 tools:node="merge"/>
+        <provider
+                android:name="androidx.work.impl.WorkManagerInitializer"
+                android:authorities="${applicationId}.workmanager-init"
+                tools:node="remove"/>
     </application>
 
 </manifest>

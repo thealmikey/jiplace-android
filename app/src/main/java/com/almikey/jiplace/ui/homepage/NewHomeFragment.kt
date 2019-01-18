@@ -2,7 +2,9 @@ package com.almikey.jiplace.ui.homepage
 
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,12 +14,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import co.chatsdk.core.session.ChatSDK
+import co.chatsdk.core.types.AccountDetails
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
@@ -25,35 +32,87 @@ import com.afollestad.materialdialogs.customview.getCustomView
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.ui.activity.CrunchyCalendary
 import com.almikey.jiplace.ui.my_places.MyPlacesViewModel
+import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
+import com.almikey.jiplace.worker.MyPlacesFirebaseSyncWorker
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseAuth
 import io.reactivex.Observable
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_new_home_jiplace.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
+import java.util.Date
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class NewHomeFragment : Fragment() {
 
+    val firebaseAuth:FirebaseAuth by lazy<FirebaseAuth>{FirebaseAuth.getInstance()}
 
-    val myPlacesViewModel: MyPlacesViewModel by viewModel()
+    var authenticating = false;
+
+    fun anonymousLogin () {
+        var details:AccountDetails  = AccountDetails();
+        details.type = AccountDetails.Type.Anonymous;
+        authenticateWithDetails(details);
+}
+
+    fun authenticateWithDetails(details: AccountDetails) {
+        if (authenticating) {
+            return
+        }
+        authenticating = true
+
+        theProgressBar.visibility = View.VISIBLE
+        ChatSDK.auth().authenticate(details)
+            .observeOn(AndroidSchedulers.mainThread())
+            .doFinally {
+                authenticating = false
+                theProgressBar.visibility = View.GONE
+
+            }
+            .subscribe({
+                Toast.makeText(activity,"i succeeded in making you an anon account",Toast.LENGTH_LONG)
+                val firebaseWorker =
+                    PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(5, TimeUnit.MINUTES).build()
+                WorkManager.getInstance().enqueue(firebaseWorker)
+            },
+                { e ->
+                Toast.makeText(activity,"i fucked up",Toast.LENGTH_LONG)
+                ChatSDK.logError(e)
+            })
+    }
+
+
+    var authStateListener: FirebaseAuth.AuthStateListener =
+        FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val firebaseUser = firebaseAuth.currentUser
+            if (firebaseUser == null) {
+                //if null we will create a chatsdk user account
+                anonymousLogin()
+            }
+            else{
+                val firebaseWorker =
+                    PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(15, TimeUnit.MINUTES).build()
+                WorkManager.getInstance().enqueue(firebaseWorker)
+
+            }
+        }
+
+ val myPlacesViewModel: MyPlacesViewModel by viewModel()
 
         val myPlacesRepo: MyPlacesRepository by inject()
         private lateinit var fusedLocationClient: FusedLocationProviderClient
         private lateinit var mLocationCallback: LocationCallback
         val REQUEST_CHECK_SETTINGS = 5
-
-
-        fun startDialogForHint() {
-
-        }
-
 
         fun createLocationRequest(): LocationRequest {
             val locationRequest = LocationRequest.create()?.apply {
@@ -113,6 +172,14 @@ class NewHomeFragment : Fragment() {
 
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
+            theProgressBar.visibility =View.GONE
+
+            jiPlaceOther.setOnClickListener{
+                var intent = Intent(activity,CrunchyCalendary::class.java)
+                startActivityForResult(intent,2)
+            }
+
+            firebaseAuth.addAuthStateListener(authStateListener)
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
             jiPlaceNow.setOnClickListener {
                 var theUUId = UUID.randomUUID().toString()
@@ -136,6 +203,17 @@ class NewHomeFragment : Fragment() {
                                 )
                                 .build()
                             WorkManager.getInstance().enqueue(locWorker)
+                            WorkManager.getInstance().getWorkInfoByIdLiveData(locWorker.id)
+                                .observe(this@NewHomeFragment, Observer { workInfo ->
+                                    // Do something with the status
+                                    if (workInfo != null && workInfo.state.isFinished) {
+                                        // ...
+                                        Log.d("location worker","i got your location and completer")
+                                    }
+                                    if(workInfo!=null && !workInfo.state.isFinished){
+                                        Log.d("location worker","am getting your location priss")
+                                    }
+                                })
                         },{err->Log.d("the error","many of horror:${err.message}")})
                     }
 
@@ -183,6 +261,36 @@ class NewHomeFragment : Fragment() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2 && resultCode == RESULT_OK) {
+            val theUuid = data?.getStringExtra("theUuid")
+            getHintAfterJiplaceOther(theUuid!!)
+        }
+    }
+
+    fun getHintAfterJiplaceOther(theUuid:String){
+        lateinit var theHintStr:String
+        var dialog = MaterialDialog(activity as Activity).show {
+            customView(R.layout.jiplace_description_hint)
+        }
+        val customView = dialog.getCustomView()
+        var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
+        theText?.text.toString()
+
+        dialog.positiveButton {
+            theHintStr = theText?.text.toString()
+            var hintPickWorker = OneTimeWorkRequestBuilder<HintPickerWorker>().addTag("hint-picker").
+                setInputData(
+                    Data.Builder()
+                        .putString("UuidKey", theUuid).putString("hint",theHintStr).build()
+                )
+                .build()
+            Log.d("i went","past hint picker worker")
+            WorkManager.getInstance().enqueue(hintPickWorker)
+        }
     }
  }
 

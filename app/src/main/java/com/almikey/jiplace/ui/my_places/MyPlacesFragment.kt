@@ -73,7 +73,7 @@ class MyPlacesFragment : Fragment() {
     class MyPlaceItem(var myPlace:MyPlace):Item() {
         override fun bind(viewHolder: ViewHolder, position: Int) {
 
-            val formatter= DateTimeFormat.forPattern("d MMMM")
+            val formatter= DateTimeFormat.forPattern("d MMMM YYYY")
             val theDate = formatter.print(DateTime(myPlace.time))
             viewHolder.itemView.jiplace_item_date.text =theDate
             val formatter2 = DateTimeFormat.forPattern("hh:mm aa")
