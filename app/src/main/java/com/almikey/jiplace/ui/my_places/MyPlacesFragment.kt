@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.almikey.jiplace.R
@@ -42,11 +43,6 @@ class MyPlacesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        var theLayout = view?.findViewById<LinearLayout>(R.id.jiplacesRecyclerview)
-//        var bgAnim = theLayout.background as AnimationDrawable
-//        bgAnim.setEnterFadeDuration(2000)
-//        bgAnim.setExitFadeDuration(4000)
-//        bgAnim.start()
         mRecyclerview = view?.findViewById(R.id.jiplace_recyclerview) as RecyclerView
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
@@ -60,17 +56,25 @@ class MyPlacesFragment : Fragment() {
 
         myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread()).subscribe {
             it.forEach {
-               groupAdapter.add(MyPlaceItem(it))
+               groupAdapter.add(MyPlaceItem(this,it))
             }
         }
 
-        groupAdapter.add(MyPlaceItem(myPlace1))
-        groupAdapter.add(MyPlaceItem(myPlace2))
-        groupAdapter.add(MyPlaceItem(myPlace3))
+        groupAdapter.add(MyPlaceItem(this,myPlace1))
+        groupAdapter.add(MyPlaceItem(this,myPlace2))
+        groupAdapter.add(MyPlaceItem(this,myPlace3))
         mRecyclerview.adapter = groupAdapter
     }
 
-    class MyPlaceItem(var myPlace:MyPlace):Item() {
+    class MyPlaceItem(var context:Fragment, var myPlace:MyPlace):Item() {
+
+        override fun createViewHolder(itemView: View): ViewHolder {
+            itemView.setOnClickListener {
+                NavHostFragment.findNavController(context).navigate(R.id.myPlacesUserFragment)
+            }
+            return super.createViewHolder(itemView)
+        }
+
         override fun bind(viewHolder: ViewHolder, position: Int) {
 
             val formatter= DateTimeFormat.forPattern("d MMMM YYYY")

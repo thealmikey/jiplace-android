@@ -23,4 +23,7 @@
             android:label="new_fragment"
             tools:layout="@layout/fragment_new_home_jiplace"
     />
+    <fragment android:id="@+id/myPlacesUserFragment"
+              android:name="com.almikey.jiplace.ui.my_places.MyPlacesUserFragment"
+              android:label="fragment_my_places_user" tools:layout="@layout/jiplaces_users_inplace_recyclerview"/>
 </navigation>
