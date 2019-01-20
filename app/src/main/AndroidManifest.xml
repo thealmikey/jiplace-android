@@ -55,10 +55,14 @@
         </activity>
         <activity
                 android:name="co.chatsdk.ui.login.LoginActivity"
-                android:allowTaskReparenting="false"
-                android:noHistory="false"
-                android:parentActivityName=".MainActivity"
-                tools:node="merge"/>
+                android:parentActivityName="com.almikey.jiplace.MainActivity"
+                android:noHistory="true"
+        >
+        </activity>
+        <activity android:name="co.chatsdk.ui.main.MainActivity"
+                  tools:replace="android:parentActivityName"
+                  android:parentActivityName="com.almikey.jiplace.MainActivity"
+        ></activity>
         <provider
                 android:name="androidx.work.impl.WorkManagerInitializer"
                 android:authorities="${applicationId}.workmanager-init"
