@@ -146,11 +146,11 @@ dependencies {
 
     implementation 'ru.cleverpumpkin:crunchycalendar:1.1.0'
 
-    implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.4.8'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.4.8'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.4.8'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.4.8'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.4.8'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.4.9'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.4.9'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.4.9'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.4.9'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.4.9'
 
     //firebase
     implementation 'com.google.firebase:firebase-core:16.0.6'

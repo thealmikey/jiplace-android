@@ -16,7 +16,8 @@
             android:name="com.almikey.jiplace.ui.my_places.MyPlacesFragment"
             android:label="my places"
             tools:layout="@layout/fragment_home_jiplace"
-    />
+    >
+    </fragment>
     <fragment
             android:id="@+id/theNewHome"
             android:name="com.almikey.jiplace.ui.homepage.NewHomeFragment"

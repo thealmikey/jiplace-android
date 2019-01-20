@@ -50,6 +50,8 @@ class MainApplication: MultiDexApplication() {
         val builder = co.chatsdk.core.session.Configuration.Builder(context)
         builder.firebaseRootPath("prod")
         builder.firebaseDatabaseURL("https://jiplace.firebaseio.com")
+        builder.setInboundPushHandlingEnabled(true)
+        builder.setClientPushEnabled(true)
         try {
             ChatSDK.initialize(builder.build(), BaseInterfaceAdapter(context), FirebaseNetworkAdapter())
         } catch (e: ChatSDKException) {

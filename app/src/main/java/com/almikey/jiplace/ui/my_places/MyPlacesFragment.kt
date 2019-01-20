@@ -7,10 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import co.chatsdk.core.session.NM
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlace
@@ -33,12 +35,18 @@ class MyPlacesFragment : Fragment() {
 
     lateinit var mRecyclerview:RecyclerView
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        NM.auth().authenticateWithCachedToken()
+        return
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_my_places_jiplace, container, false)
+        return inflater.inflate(R.layout.jiplaces_recyclerview, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,11 +56,8 @@ class MyPlacesFragment : Fragment() {
         val groupAdapter = GroupAdapter<ViewHolder>()
 
         var myPlace1 = MyPlace(22, time=Date(),
-           location =  MyLocation(33.toFloat(),44.toFloat()),hint = "the one who knocks")
-        var myPlace2 = MyPlace(32, time=DateTime.now().toDate(),
-           location = MyLocation(33.toFloat(),44.toFloat()),hint = "Heisenberg")
-        var myPlace3 = MyPlace(42, time = DateTime.now().toDate(),
-            location = MyLocation(33.toFloat(),44.toFloat()),hint = "Science Jessee")
+           location =  MyLocation(33.toFloat(),44.toFloat()),hint = "a message from the one who knocks")
+
 
         myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread()).subscribe {
             it.forEach {
@@ -61,21 +66,24 @@ class MyPlacesFragment : Fragment() {
         }
 
         groupAdapter.add(MyPlaceItem(this,myPlace1))
-        groupAdapter.add(MyPlaceItem(this,myPlace2))
-        groupAdapter.add(MyPlaceItem(this,myPlace3))
         mRecyclerview.adapter = groupAdapter
     }
 
     class MyPlaceItem(var context:Fragment, var myPlace:MyPlace):Item() {
 
         override fun createViewHolder(itemView: View): ViewHolder {
-            itemView.setOnClickListener {
-                NavHostFragment.findNavController(context).navigate(R.id.myPlacesUserFragment)
-            }
+
             return super.createViewHolder(itemView)
         }
 
         override fun bind(viewHolder: ViewHolder, position: Int) {
+
+            viewHolder.itemView.setOnClickListener {
+                var bundle = bundleOf("latitude" to myPlace.location.latitude.toDouble()
+                    ,"longitude" to myPlace.location.longitude.toDouble(),"theTime" to myPlace.time.time)
+                NavHostFragment.findNavController(context).navigate(R.id.myPlacesUserFragment, bundle)
+            }
+
 
             val formatter= DateTimeFormat.forPattern("d MMMM YYYY")
             val theDate = formatter.print(DateTime(myPlace.time))
