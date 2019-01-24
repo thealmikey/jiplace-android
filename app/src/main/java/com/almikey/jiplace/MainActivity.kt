@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
                 return@OnNavigationItemSelectedListener true
             }
             R.id.jiplace_home_menu-> {
-
+                findNavController(R.id.nav_host_fragment).navigate(R.id.theNewHome)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.jiplace_myplaces_menu->{

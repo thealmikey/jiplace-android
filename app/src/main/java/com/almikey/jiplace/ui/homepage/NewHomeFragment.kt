@@ -41,6 +41,8 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
+import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
+import com.uber.autodispose.autoDisposable
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -55,15 +57,18 @@ import java.util.concurrent.TimeUnit
 
 class NewHomeFragment : Fragment() {
 
-    val firebaseAuth:FirebaseAuth by lazy<FirebaseAuth>{FirebaseAuth.getInstance()}
+
+    private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
+
+    val firebaseAuth: FirebaseAuth by lazy<FirebaseAuth> { FirebaseAuth.getInstance() }
 
     var authenticating = false;
 
-    fun anonymousLogin () {
-        var details:AccountDetails  = AccountDetails();
+    fun anonymousLogin() {
+        var details: AccountDetails = AccountDetails();
         details.type = AccountDetails.Type.Anonymous;
         authenticateWithDetails(details);
-}
+    }
 
     fun authenticateWithDetails(details: AccountDetails) {
         if (authenticating) {
@@ -78,17 +83,17 @@ class NewHomeFragment : Fragment() {
                 authenticating = false
                 theProgressBar.visibility = View.GONE
 
-            }
+            }.autoDisposable(scopeProvider)
             .subscribe({
-                Toast.makeText(activity,"i succeeded in making you an anon account",Toast.LENGTH_LONG)
+                Toast.makeText(activity, "i succeeded in making you an anon account", Toast.LENGTH_LONG)
                 val firebaseWorker =
                     PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(5, TimeUnit.MINUTES).build()
                 WorkManager.getInstance().enqueue(firebaseWorker)
             },
                 { e ->
-                Toast.makeText(activity,"i fucked up",Toast.LENGTH_LONG)
-                ChatSDK.logError(e)
-            })
+                    Toast.makeText(activity, "i fucked up", Toast.LENGTH_LONG)
+                    ChatSDK.logError(e)
+                })
     }
 
 
@@ -98,8 +103,7 @@ class NewHomeFragment : Fragment() {
             if (firebaseUser == null) {
                 //if null we will create a chatsdk user account
                 anonymousLogin()
-            }
-            else{
+            } else {
                 val firebaseWorker =
                     PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(15, TimeUnit.MINUTES).build()
                 WorkManager.getInstance().enqueue(firebaseWorker)
@@ -107,39 +111,39 @@ class NewHomeFragment : Fragment() {
             }
         }
 
- val myPlacesViewModel: MyPlacesViewModel by viewModel()
+    val myPlacesViewModel: MyPlacesViewModel by viewModel()
 
-        val myPlacesRepo: MyPlacesRepository by inject()
-        private lateinit var fusedLocationClient: FusedLocationProviderClient
-        private lateinit var mLocationCallback: LocationCallback
-        val REQUEST_CHECK_SETTINGS = 5
+    val myPlacesRepo: MyPlacesRepository by inject()
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var mLocationCallback: LocationCallback
+    val REQUEST_CHECK_SETTINGS = 5
 
-        fun createLocationRequest(): LocationRequest {
-            val locationRequest = LocationRequest.create()?.apply {
-                interval = 1000
-                fastestInterval = 500
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            }
-            return locationRequest!!
+    fun createLocationRequest(): LocationRequest {
+        val locationRequest = LocationRequest.create()?.apply {
+            interval = 1000
+            fastestInterval = 500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
+        return locationRequest!!
+    }
 
-        fun getCurrentLocationSettings(locationRequest: LocationRequest, context: Context): Task<LocationSettingsResponse> {
-            var builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-            var client: SettingsClient = LocationServices.getSettingsClient(context)
-            var task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-            return task
-        }
+    fun getCurrentLocationSettings(locationRequest: LocationRequest, context: Context): Task<LocationSettingsResponse> {
+        var builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        var client: SettingsClient = LocationServices.getSettingsClient(context)
+        var task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+        return task
+    }
 
 
-        fun locationSettingsObservable():Observable<Boolean>{
-            return Observable.create<Boolean> {emitter ->
-          var theTask =  getCurrentLocationSettings(createLocationRequest(),activity as Activity)
+    fun locationSettingsObservable(): Observable<Boolean> {
+        return Observable.create<Boolean> { emitter ->
+            var theTask = getCurrentLocationSettings(createLocationRequest(), activity as Activity)
             theTask.addOnSuccessListener {
-                    emitter.onNext(true)
+                emitter.onNext(true)
                 emitter.onComplete()
             }
-           var theFail = theTask.addOnFailureListener { exception ->
-                if (exception is ResolvableApiException){
+            var theFail = theTask.addOnFailureListener { exception ->
+                if (exception is ResolvableApiException) {
                     // Location settings are not satisfied, but this can be fixed
                     // by showing the user a dialog.
                     try {
@@ -147,60 +151,61 @@ class NewHomeFragment : Fragment() {
                         // and check the result in onActivityResult().
                         emitter.onNext(false)
 
-                        exception.startResolutionForResult(activity as Activity,REQUEST_CHECK_SETTINGS)
-                        Log.d("yellow","bella")
+                        exception.startResolutionForResult(activity as Activity, REQUEST_CHECK_SETTINGS)
+                        Log.d("yellow", "bella")
                     } catch (sendEx: IntentSender.SendIntentException) {
                         // Ignore the error.
                     }
                 }
             }
-                theFail.addOnCompleteListener {
-                    emitter.onNext(true)
-                    emitter.onComplete()
-                }
-        }
-        }
-
-        override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
-        ): View? {
-            super.onCreateView(inflater, container, savedInstanceState)
-            // Inflate the layout for this fragment
-            return inflater.inflate(R.layout.fragment_new_home_jiplace, container, false)
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-            theProgressBar.visibility =View.GONE
-
-            jiPlaceOther.setOnClickListener{
-                var intent = Intent(activity,CrunchyCalendary::class.java)
-                startActivityForResult(intent,2)
+            theFail.addOnCompleteListener {
+                emitter.onNext(true)
+                emitter.onComplete()
             }
+        }
+    }
 
-            firebaseAuth.addAuthStateListener(authStateListener)
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
-            jiPlaceNow.setOnClickListener {
-                var theUUId = UUID.randomUUID().toString()
-                fun askForHint():Unit{
-                    lateinit var theRes: String
-                    var dialog = MaterialDialog(activity as Activity).show {
-                        customView(R.layout.jiplace_description_hint)
-                    }
-                    val customView = dialog.getCustomView()
-                    var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
-                    theText?.text.toString()
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        super.onCreateView(inflater, container, savedInstanceState)
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_new_home_jiplace, container, false)
+    }
 
-                    dialog.negativeButton {
-                        CompletableFromAction{
-                            myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId))
-                        }.subscribeOn(Schedulers.io()).subscribe({
-                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").
-                                setInputData(
-                                    Data.Builder()
-                                        .putString("UuidKey", theUUId).build()
-                                )
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        theProgressBar.visibility = View.GONE
+
+        jiPlaceOther.setOnClickListener {
+            var intent = Intent(activity, CrunchyCalendary::class.java)
+            startActivityForResult(intent, 2)
+        }
+
+        firebaseAuth.addAuthStateListener(authStateListener)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
+        jiPlaceNow.setOnClickListener {
+            var theUUId = UUID.randomUUID().toString()
+            fun askForHint(): Unit {
+                lateinit var theRes: String
+                var dialog = MaterialDialog(activity as Activity).show {
+                    customView(R.layout.jiplace_description_hint)
+                }
+                val customView = dialog.getCustomView()
+                var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
+                theText?.text.toString()
+
+                dialog.negativeButton {
+                    CompletableFromAction {
+                        myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId))
+                    }.subscribeOn(Schedulers.io())
+                        .autoDisposable(scopeProvider)
+                        .subscribe({
+                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                                Data.Builder()
+                                    .putString("UuidKey", theUUId).build()
+                            )
                                 .build()
                             WorkManager.getInstance().enqueue(locWorker)
                             WorkManager.getInstance().getWorkInfoByIdLiveData(locWorker.id)
@@ -208,56 +213,61 @@ class NewHomeFragment : Fragment() {
                                     // Do something with the status
                                     if (workInfo != null && workInfo.state.isFinished) {
                                         // ...
-                                        Log.d("location worker","i got your location and completer")
+                                        Log.d("location worker", "i got your location and completer")
                                     }
-                                    if(workInfo!=null && !workInfo.state.isFinished){
-                                        Log.d("location worker","am getting your location priss")
+                                    if (workInfo != null && !workInfo.state.isFinished) {
+                                        Log.d("location worker", "am getting your location priss")
                                     }
                                 })
-                        },{err->Log.d("the error","many of horror:${err.message}")})
-                    }
+                        })
+                }
 
-                    dialog.positiveButton {
-                        theRes = theText?.text.toString()
-                        CompletableFromAction{
-                            myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId,hint = theRes))
-                      }.subscribeOn(Schedulers.io()).subscribe ({
-                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").
-                                setInputData(
-                                    Data.Builder()
-                                        .putString("UuidKey", theUUId).build()
-                                )
+                dialog.positiveButton {
+                    theRes = theText?.text.toString()
+                    CompletableFromAction {
+                        myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId, hint = theRes))
+                    }.subscribeOn(Schedulers.io())
+                        .autoDisposable(scopeProvider)
+                        .subscribe({
+                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                                Data.Builder()
+                                    .putString("UuidKey", theUUId).build()
+                            )
                                 .build()
                             WorkManager.getInstance().enqueue(locWorker)
-                        },{err->Log.d("the error","many of horror:${err.message}")})
-                    }
-
-                    return Unit
+                        }, { err -> Log.d("the error", "many of horror:${err.message}") })
                 }
-                var permissionStatus =
-                    ContextCompat.checkSelfPermission(activity as Activity, "android.Manifest.permission.ACCESS_FINE_LOCATION")
-                if(permissionStatus == PackageManager.PERMISSION_GRANTED) {
-                locationSettingsObservable().subscribe{
-                    if(it){
+
+                return Unit
+            }
+
+            var permissionStatus =
+                ContextCompat.checkSelfPermission(
+                    activity as Activity,
+                    "android.Manifest.permission.ACCESS_FINE_LOCATION"
+                )
+            if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+                locationSettingsObservable().autoDisposable(scopeProvider).subscribe {
+                    if (it) {
                         askForHint()
                     }
                 }
-            }
-                else if(permissionStatus!= PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(
-                        activity as Activity,
-                        arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                        1
-                    )
-                    locationSettingsObservable().subscribe{
-                        if(it){
+            } else if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    activity as Activity,
+                    arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                    1
+                )
+                locationSettingsObservable()
+                    .autoDisposable(scopeProvider)
+                    .subscribe {
+                        if (it) {
                             askForHint()
                         }
                     }
-
-                }
             }
         }
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
 
@@ -271,8 +281,8 @@ class NewHomeFragment : Fragment() {
         }
     }
 
-    fun getHintAfterJiplaceOther(theUuid:String){
-        lateinit var theHintStr:String
+    fun getHintAfterJiplaceOther(theUuid: String) {
+        lateinit var theHintStr: String
         var dialog = MaterialDialog(activity as Activity).show {
             customView(R.layout.jiplace_description_hint)
         }
@@ -280,18 +290,27 @@ class NewHomeFragment : Fragment() {
         var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
         theText?.text.toString()
 
+        dialog.negativeButton {
+            theHintStr = "no text hint was given :("
+            var hintPickWorker = OneTimeWorkRequestBuilder<HintPickerWorker>().addTag("hint-picker").setInputData(
+                Data.Builder()
+                    .putString("UuidKey", theUuid).putString("hint", theHintStr).build()
+            )
+                .build()
+            Log.d("i went", "past hint picker worker")
+            WorkManager.getInstance().enqueue(hintPickWorker)
+        }
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
-            var hintPickWorker = OneTimeWorkRequestBuilder<HintPickerWorker>().addTag("hint-picker").
-                setInputData(
-                    Data.Builder()
-                        .putString("UuidKey", theUuid).putString("hint",theHintStr).build()
-                )
+            var hintPickWorker = OneTimeWorkRequestBuilder<HintPickerWorker>().addTag("hint-picker").setInputData(
+                Data.Builder()
+                    .putString("UuidKey", theUuid).putString("hint", theHintStr).build()
+            )
                 .build()
-            Log.d("i went","past hint picker worker")
+            Log.d("i went", "past hint picker worker")
             WorkManager.getInstance().enqueue(hintPickWorker)
         }
     }
- }
+}
 
 

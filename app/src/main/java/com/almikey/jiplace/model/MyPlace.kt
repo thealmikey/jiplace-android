@@ -17,5 +17,8 @@ data class MyPlace(
     var people:Int=0,
     var newPeople:Int=0,
     var workSync:Boolean=false,
-    var firebaseSync:Boolean=false
+    var firebaseSync:Boolean=false,
+    var deletedStatus:String="false",
+    var jiplaceOther:Boolean=false,
+    var dateAdded:Date=Date()
 )
