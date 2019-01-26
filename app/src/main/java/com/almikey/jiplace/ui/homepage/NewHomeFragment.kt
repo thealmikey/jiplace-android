@@ -244,7 +244,7 @@ class NewHomeFragment : Fragment() {
                     "android.Manifest.permission.ACCESS_FINE_LOCATION"
                 )
             if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-                locationSettingsObservable().autoDisposable(scopeProvider).subscribe {
+                locationSettingsObservable().subscribe {
                     if (it) {
                         askForHint()
                     }
@@ -256,7 +256,6 @@ class NewHomeFragment : Fragment() {
                     1
                 )
                 locationSettingsObservable()
-                    .autoDisposable(scopeProvider)
                     .subscribe {
                         if (it) {
                             askForHint()

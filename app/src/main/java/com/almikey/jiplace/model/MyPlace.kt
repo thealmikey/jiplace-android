@@ -3,10 +3,13 @@ package com.almikey.jiplace.model
 import android.location.Location
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.*
 
-@Entity
+@Entity(indices = arrayOf(
+    Index(value = ["uuidString"],
+    unique = true)))
 data class MyPlace(
     @PrimaryKey(autoGenerate = true) var jid: Int=0,
     var uuidString:String="",
