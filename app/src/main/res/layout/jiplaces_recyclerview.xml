@@ -8,13 +8,13 @@
               android:layout_height="match_parent"
               android:background="@drawable/gradient_list"
 >
-    <androidx.recyclerview.widget.RecyclerView
-            app:layout_dodgeInsetEdges="bottom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/jiplace_recyclerview"
-    >
+    <!--<androidx.recyclerview.widget.RecyclerView-->
+            <!--app:layout_dodgeInsetEdges="bottom"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:id="@+id/jiplace_recyclerview"-->
+    <!--&gt;-->
 
-    </androidx.recyclerview.widget.RecyclerView>
+    <!--</androidx.recyclerview.widget.RecyclerView>-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

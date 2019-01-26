@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -33,7 +32,7 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepository
 import com.almikey.jiplace.ui.activity.CrunchyCalendary
-import com.almikey.jiplace.ui.my_places.MyPlacesViewModel
+import com.almikey.jiplace.ui.my_places.MyPlaceViewModel
 import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
 import com.almikey.jiplace.worker.MyPlacesFirebaseSyncWorker
@@ -44,14 +43,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_new_home_jiplace.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.Date
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -111,7 +108,7 @@ class NewHomeFragment : Fragment() {
             }
         }
 
-    val myPlacesViewModel: MyPlacesViewModel by viewModel()
+    val myPlacesViewModel: MyPlaceViewModel by viewModel()
 
     val myPlacesRepo: MyPlacesRepository by inject()
     private lateinit var fusedLocationClient: FusedLocationProviderClient

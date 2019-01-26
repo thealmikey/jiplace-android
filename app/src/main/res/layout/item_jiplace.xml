@@ -113,7 +113,9 @@
                     android:layout_gravity="center"
                     android:textColor="#000"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/theLat" android:layout_weight="1"/>
+                    android:layout_height="wrap_content"
+                    android:id="@+id/jiplace_item_latitude"
+                    android:layout_weight="1"/>
             <TextView
                     android:textSize="16sp"
                     android:text="theLon"
@@ -121,7 +123,9 @@
                     android:layout_gravity="center"
                     android:textColor="#000"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/theLon" android:layout_weight="1"/>
+                    android:layout_height="wrap_content"
+                    android:id="@+id/jiplace_item_longitude"
+                    android:layout_weight="1"/>
         </LinearLayout>
 
     </LinearLayout>
