@@ -74,12 +74,15 @@ class NewHomeFragment : Fragment() {
         authenticating = true
 
         theProgressBar.visibility = View.VISIBLE
+        jiPlaceNow.isEnabled = false
+        jiPlaceOther.isEnabled =false
         ChatSDK.auth().authenticate(details)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally {
                 authenticating = false
                 theProgressBar.visibility = View.GONE
-
+                jiPlaceNow.isEnabled = true
+                jiPlaceOther.isEnabled = true
             }.autoDisposable(scopeProvider)
             .subscribe({
                 Toast.makeText(activity, "i succeeded in making you an anon account", Toast.LENGTH_LONG)

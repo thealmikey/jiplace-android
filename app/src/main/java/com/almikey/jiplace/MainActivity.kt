@@ -7,20 +7,26 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.navigation.findNavController
-import co.chatsdk.ui.login.LoginActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 
 class MainActivity : AppCompatActivity() {
 
 
+    val firebaseAuth: FirebaseAuth by lazy<FirebaseAuth> { FirebaseAuth.getInstance() }
+
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.jiplace_chats_menu-> {
-                var intent = Intent(this@MainActivity, LoginActivity::class.java)
+                if(firebaseAuth.uid!=null){
+                var intent = Intent(this@MainActivity, co.chatsdk.ui.main.MainActivity::class.java)
                 startActivity(intent)
                 return@OnNavigationItemSelectedListener true
+                }else{
+                    return@OnNavigationItemSelectedListener true
+                }
             }
             R.id.jiplace_home_menu-> {
                 findNavController(R.id.nav_host_fragment).navigate(R.id.theNewHome)

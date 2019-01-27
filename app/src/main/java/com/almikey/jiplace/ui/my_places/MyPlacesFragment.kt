@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import co.chatsdk.core.session.NM
-import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlace
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
@@ -19,35 +18,75 @@ import java.util.*
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import android.R.menu
+import android.annotation.SuppressLint
 import android.view.MenuInflater
 import android.widget.EditText
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import co.chatsdk.core.dao.DaoCore
+import co.chatsdk.core.interfaces.ThreadType
+import co.chatsdk.core.session.ChatSDK
+import co.chatsdk.firebase.wrappers.UserWrapper
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
+import com.almikey.jiplace.R
+import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
+import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.repository.MyPlacesRepository
-import com.almikey.jiplace.worker.HintPickerWorker
+import com.almikey.myplace.service.MyPlacesDao
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
+import io.reactivex.subjects.PublishSubject
 
 
 class MyPlacesFragment : Fragment(), KoinComponent {
 
+
+    fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
+        var timeInSec = theTime.toFloat() / 1000
+        var timeInMin = timeInSec / 60
+        var timeIn15 = timeInMin / min
+        var fixedTime = Math.floor(timeIn15.toDouble())
+        var timeInMs = fixedTime * min * 60 * 1000
+        return timeInMs.toLong()
+    }
+
+    fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
+        var timeInSec = theTime.toFloat() / 1000
+        var timeInMin = timeInSec / 60
+        var timeIn15 = timeInMin / min
+        var fixedTime = Math.ceil(timeIn15.toDouble())
+        var timeInMs = fixedTime * min * 60 * 1000
+        return timeInMs.toLong()
+    }
+
+
     val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesDao:MyPlacesDao by inject()
+    val myPlaceUserSharedDao:MyPlaceUserSharedDao by inject()
 
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
 
     val myPlacesViewModel: MyPlaceViewModel by viewModel()
-    var myPlaces:MutableList<MyPlace> = mutableListOf()
+    var myPlaces: MutableList<MyPlace> = mutableListOf()
 
-    lateinit var mCoordinatorLayout:CoordinatorLayout
+    lateinit var mCoordinatorLayout: CoordinatorLayout
 
     lateinit var mRecyclerview: RecyclerView
-    lateinit var myPlacesAdapter:MyPlaceAdapter
+    lateinit var myPlacesAdapter: MyPlaceAdapter
+
+    val firebaseAuth by lazy{ FirebaseAuth.getInstance()}
+
+    var mySubject = PublishSubject.create<ContextMenuRecyclerView.RecyclerViewContextMenuInfo>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,16 +103,18 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     }
 
 
-    fun editMyPlace(myPlace:MyPlace){
+    fun editMyPlace(myPlace: MyPlace) {
 
     }
 
+    @SuppressLint("AutoDispose")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 //        mRecyclerview = view?.findViewById(R.id.jiplace_recyclerview) as RecyclerView
         mCoordinatorLayout = view?.findViewById(R.id.jiplaces_container_for_recyclerview) as CoordinatorLayout
         mRecyclerview = ContextMenuRecyclerView(this.context!!)
-        var params:ViewGroup.LayoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        var params: ViewGroup.LayoutParams =
+            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         mRecyclerview.layoutParams = params
         mCoordinatorLayout.addView(mRecyclerview)
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
@@ -82,20 +123,17 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 //
 //        mRecyclerview.addOnItemTouchListener(mListener)
 
-        var myPlace1 = MyPlace(
-            22, time = Date(),
-            location = MyLocation(33.toFloat(), 44.toFloat()), hint = "a message from the one who knocks"
-        )
 
-        myPlacesAdapter = MyPlaceAdapter(this,myPlaces)
+        myPlacesAdapter = MyPlaceAdapter(this, myPlaces)
 
         myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
             .autoDisposable(scopeProvider)
             .subscribe {
                 myPlaces.clear()
                 it.forEach {
-
-                    myPlaces.add(it)
+                    if (it.deletedStatus == "false") {
+                        myPlaces.add(it)
+                    }
 
                 }
                 myPlacesAdapter.notifyDataSetChanged()
@@ -104,6 +142,72 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
         mRecyclerview.adapter = myPlacesAdapter
         registerForContextMenu(mRecyclerview);
+        var mySubjectObservable:Observable<ContextMenuRecyclerView.RecyclerViewContextMenuInfo> = mySubject
+//
+//        @SuppressLint("AutoDispose")
+//      var cc =  mySubjectObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe {info ->
+//           myPlacesRepo.findByUuid(myPlaces[info.position].uuidString).subscribe {thePlace ->
+//               var newPlace = thePlace.copy(deletedStatus = "pending")
+//               myPlacesRepo.update(newPlace)
+//               var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
+//                   .findByMyPlaceUuid(thePlace.uuidString)
+//                   .blockingFirst()
+//               Log.d("users in place","${usersInPlace.size}")
+//
+//               var theFbId = firebaseAuth.uid!!
+//               var ref: DatabaseReference = FirebaseDatabase
+//                   .getInstance().reference
+//
+//               var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
+////            var fiveMinGroupDown = timeMinuteGroupDown(it.time.time, 5).toString()
+//               var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
+//
+//               val childUpdates = HashMap<String, Any?>()
+//               childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
+//               childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
+//
+//               ref.updateChildren(childUpdates).addOnSuccessListener {
+//
+//                   var newPlace = thePlace.copy(deletedStatus = "true")
+//                   myPlacesDao.update(newPlace)
+//                   var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
+//                       .findByMyPlaceUuid(thePlace.uuidString)
+//                       .blockingFirst()
+//                   myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
+//                   for (i in usersInPlace) {
+//                       Log.d("shared user", "i got in the loop ${usersInPlace.size}")
+//                       var userTimes: Int = myPlaceUserSharedDao.findByMyPlaceUuid(thePlace.uuidString).blockingFirst().size
+//                       Log.d("shared user", "the number of jiplaces shared is $userTimes")
+//                       if (userTimes == 0) {
+//                           var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
+//                           var userObservable = wrapper.metaOn();
+//
+//                           var myUser = userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).blockingFirst()
+//                           if (myUser.entityID!! != null) {
+//                               for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
+//                                   if (thread.getUsers().size === 2 &&
+//                                       thread.containsUser(ChatSDK.currentUser()) &&
+//                                       thread.containsUser(myUser)
+//                                   ) {
+//                                       var jointThread = thread
+//                                       DaoCore.deleteEntity(jointThread);
+//                                       DaoCore.deleteEntity(myUser);
+//                                   }
+//                               }
+//                           }
+//
+//                       }
+//                   }
+//
+//               }
+//
+//
+//           }
+//        }
+
+
+
+
     }
 
 
@@ -113,32 +217,82 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         inflater.inflate(R.menu.jiplace_context_menu, menu)
     }
 
+    @SuppressLint("AutoDispose")
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        Log.d("context menu item","context menu item selected")
+        Log.d("context menu item", "context menu item selected")
         val info = item.menuInfo as ContextMenuRecyclerView.RecyclerViewContextMenuInfo
         return when (item.itemId) {
             R.id.edit_jiplace_description -> {
-                Log.d("edit","context menu")
-                getHintAfterJiplaceOther(myPlaces[info.position].uuidString,info.position)
-                Toast.makeText(this.context,"edit ${info.position}",Toast.LENGTH_LONG).show()
+                Log.d("edit", "context menu")
+                getHintAfterJiplaceOther(myPlaces[info.position].uuidString, info.position)
+                Toast.makeText(this.context, "edit ${info.position}", Toast.LENGTH_LONG).show()
                 true
             }
             R.id.delete_jiplace -> {
-                Log.d("delete","context menu")
-                CompletableFromAction{
-                    var thePlace = myPlacesRepo.findByUuid(myPlaces[info.position].uuidString)
-                        .subscribeOn(Schedulers.io()).blockingFirst()
-                    var newPlace = thePlace.copy(deletedStatus = "pending")
-                    CompletableFromAction{myPlacesRepo.update(newPlace)}
-                        .subscribeOn(Schedulers.io()).subscribe()
-                }.observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.io())
-                    .autoDisposable(scopeProvider)
-                    .subscribe {
-                        myPlacesAdapter.notifyItemChanged(info.position)
-                        Log.d("jiplace other","n putting a location in jiplace other")
-                    }
-                Toast.makeText(this.context,"$ delete {info.position}",Toast.LENGTH_LONG).show()
+                Log.d("delete", "context menu")
+//                mySubject.onNext(info)
+
+//                    {info ->
+                        myPlacesRepo.findByUuid(myPlaces[info.position].uuidString)
+                            .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe {thePlace ->
+                            var newPlace = thePlace.copy(deletedStatus = "pending")
+                            myPlacesRepo.update(newPlace)
+                            var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
+                                .findByMyPlaceUuid(thePlace.uuidString)
+                                .blockingFirst()
+                            Log.d("users in place","${usersInPlace.size}")
+
+                            var theFbId = firebaseAuth.uid!!
+                            var ref: DatabaseReference = FirebaseDatabase
+                                .getInstance().reference
+
+                            var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
+//            var fiveMinGroupDown = timeMinuteGroupDown(it.time.time, 5).toString()
+                            var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
+
+                            val childUpdates = HashMap<String, Any?>()
+                            childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
+                            childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
+
+                            ref.updateChildren(childUpdates).addOnSuccessListener {
+
+                                CompletableFromAction{
+                                var newPlace = thePlace.copy(deletedStatus = "true")
+                                myPlacesDao.update(newPlace)
+                                var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
+                                    .findByMyPlaceUuid(thePlace.uuidString)
+                                    .blockingFirst()
+                                myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
+                                for (i in usersInPlace) {
+                                    Log.d("shared user", "i got in the loop ${usersInPlace.size}")
+                                    var userTimes: Int = myPlaceUserSharedDao.findByMyPlaceUuid(thePlace.uuidString).blockingFirst().size
+                                    Log.d("shared user", "the number of jiplaces shared is $userTimes")
+                                    if (userTimes == 0) {
+                                        var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
+                                        var userObservable = wrapper.metaOn();
+
+                                        var myUser = userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).blockingFirst()
+                                        if (myUser.entityID!! != null) {
+                                            for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
+                                                if (thread.getUsers().size === 2 &&
+                                                    thread.containsUser(ChatSDK.currentUser()) &&
+                                                    thread.containsUser(myUser)
+                                                ) {
+                                                    var jointThread = thread
+                                                    DaoCore.deleteEntity(jointThread);
+                                                    DaoCore.deleteEntity(myUser);
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+
+                            }.subscribeOn(Schedulers.io()).subscribe()
+                            }
+
+                        }
+                Toast.makeText(this.context, "$ delete {info.position}", Toast.LENGTH_SHORT).show()
                 true
             }
             else -> super.onContextItemSelected(item)
@@ -150,8 +304,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     }
 
 
-
-    fun getHintAfterJiplaceOther(theUuid: String,position:Int) {
+    fun getHintAfterJiplaceOther(theUuid: String, position: Int) {
         lateinit var theHintStr: String
         var dialog = MaterialDialog(activity as Activity).show {
             customView(R.layout.jiplace_description_hint)
@@ -162,26 +315,26 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
-            CompletableFromAction{
-            var thePlace = myPlacesRepo.findByUuid(theUuid)
-                .subscribeOn(Schedulers.io()).blockingFirst()
+            CompletableFromAction {
+                var thePlace = myPlacesRepo.findByUuid(theUuid)
+                    .subscribeOn(Schedulers.io()).blockingFirst()
                 var newPlace = thePlace.copy(hint = theHintStr)
-                CompletableFromAction{myPlacesRepo.update(newPlace)}
+
+                @SuppressLint("AutoDispose")
+             var b= CompletableFromAction { myPlacesRepo.update(newPlace) }
                     .subscribeOn(Schedulers.io()).subscribe()
             }.observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .autoDisposable(scopeProvider)
                 .subscribe {
                     myPlacesAdapter.notifyItemChanged(position)
-                Log.d("jiplace other","n putting a location in jiplace other")
-            }
+                    Log.d("jiplace other", "n putting a location in jiplace other")
+                }
         }
     }
 
 
 }
-
-
 
 
 //    override fun onContextItemSelected(item: MenuItem): Boolean {
