@@ -50,6 +50,7 @@ class MainApplication: MultiDexApplication() {
         builder.firebaseDatabaseURL("https://jiplace.firebaseio.com")
         builder.setInboundPushHandlingEnabled(true)
         builder.setClientPushEnabled(true)
+        builder.disconnectFromFirebaseWhenInBackground(false)
         builder.reuseDeleted1to1Threads(false)
         try {
             ChatSDK.initialize(builder.build(), FirebaseNetworkAdapter(),BaseInterfaceAdapter(context)!!)

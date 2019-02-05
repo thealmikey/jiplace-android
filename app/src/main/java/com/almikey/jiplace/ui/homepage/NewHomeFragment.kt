@@ -1,6 +1,7 @@
 package com.almikey.jiplace.ui.homepage
 
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Context
@@ -18,11 +19,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import co.chatsdk.core.session.ChatSDK
+import co.chatsdk.core.session.NM
 import co.chatsdk.core.types.AccountDetails
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -55,6 +54,12 @@ import java.util.concurrent.TimeUnit
 class NewHomeFragment : Fragment() {
 
 
+     val firebaseWorker by lazy{
+         var constraint: Constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+         OneTimeWorkRequestBuilder<MyPlacesFirebaseSyncWorker>().setConstraints(constraint).build()
+     }
+
+
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
 
     val firebaseAuth: FirebaseAuth by lazy<FirebaseAuth> { FirebaseAuth.getInstance() }
@@ -83,12 +88,11 @@ class NewHomeFragment : Fragment() {
                 theProgressBar.visibility = View.GONE
                 jiPlaceNow.isEnabled = true
                 jiPlaceOther.isEnabled = true
+                NM.auth().authenticateWithCachedToken()
             }.autoDisposable(scopeProvider)
             .subscribe({
                 Toast.makeText(activity, "i succeeded in making you an anon account", Toast.LENGTH_LONG)
-                val firebaseWorker =
-                    PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(5, TimeUnit.MINUTES).build()
-                WorkManager.getInstance().enqueue(firebaseWorker)
+
             },
                 { e ->
                     Toast.makeText(activity, "i fucked up", Toast.LENGTH_LONG)
@@ -103,11 +107,9 @@ class NewHomeFragment : Fragment() {
             if (firebaseUser == null) {
                 //if null we will create a chatsdk user account
                 anonymousLogin()
-            } else {
-                val firebaseWorker =
-                    PeriodicWorkRequestBuilder<MyPlacesFirebaseSyncWorker>(15, TimeUnit.MINUTES).build()
-                WorkManager.getInstance().enqueue(firebaseWorker)
 
+            } else {
+                NM.auth().authenticateWithCachedToken()
             }
         }
 
@@ -173,7 +175,7 @@ class NewHomeFragment : Fragment() {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_new_home_jiplace, container, false)
     }
-
+    @SuppressLint("AutoDispose")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         theProgressBar.visibility = View.GONE
@@ -207,7 +209,7 @@ class NewHomeFragment : Fragment() {
                                     .putString("UuidKey", theUUId).build()
                             )
                                 .build()
-                            WorkManager.getInstance().enqueue(locWorker)
+                            WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
                             WorkManager.getInstance().getWorkInfoByIdLiveData(locWorker.id)
                                 .observe(this@NewHomeFragment, Observer { workInfo ->
                                     // Do something with the status
@@ -234,7 +236,7 @@ class NewHomeFragment : Fragment() {
                                     .putString("UuidKey", theUUId).build()
                             )
                                 .build()
-                            WorkManager.getInstance().enqueue(locWorker)
+                            WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
                         }, { err -> Log.d("the error", "many of horror:${err.message}") })
                 }
 
@@ -297,7 +299,7 @@ class NewHomeFragment : Fragment() {
             )
                 .build()
             Log.d("i went", "past hint picker worker")
-            WorkManager.getInstance().enqueue(hintPickWorker)
+            WorkManager.getInstance().beginWith(hintPickWorker).then(firebaseWorker).enqueue()
         }
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
@@ -307,7 +309,7 @@ class NewHomeFragment : Fragment() {
             )
                 .build()
             Log.d("i went", "past hint picker worker")
-            WorkManager.getInstance().enqueue(hintPickWorker)
+            WorkManager.getInstance().beginWith(hintPickWorker).then(firebaseWorker).enqueue()
         }
     }
 }

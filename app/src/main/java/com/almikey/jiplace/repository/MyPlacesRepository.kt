@@ -13,6 +13,7 @@ class MyPlacesRepository(var application: Application,var db:MyPlacesRoomDatabas
     fun addMyPlace(jiplace:MyPlace) = myPlacesDao.insertAll(jiplace)
     fun findByUuid(uuid:String):Flowable<MyPlace> = myPlacesDao.findByUuid(uuid)
     fun update(myPlace:MyPlace)= myPlacesDao.update(myPlace)
+    fun findByLocationData(mLatitude:Float,mLongitude:Float,theTime:Long) = myPlacesDao.findByLocationData(mLatitude,mLongitude,theTime)
 
 
 }

@@ -14,6 +14,8 @@ data class MyPlace(
     @PrimaryKey(autoGenerate = true) var jid: Int=0,
     var uuidString:String="",
     var time: Date=Date(),
+    var timeRoundUp:Long= timeMinuteGroupUp(Date().time,15),
+    var timeRoundDown:Long= timeMinuteGroupDown(Date().time, 15),
     @Embedded var location: MyLocation=MyLocation(0f,0f),
     var hint:String="",
     var image:String="",
@@ -23,5 +25,23 @@ data class MyPlace(
     var firebaseSync:Boolean=false,
     var deletedStatus:String="false",
     var jiplaceOther:Boolean=false,
-    var dateAdded:Date=Date()
+    var dateAdded:Date=Date(),
+    @Embedded var profile:MyPlaceProfilePic=MyPlaceProfilePic()
 )
+
+fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
+    var timeInSec = theTime.toFloat() / 1000
+    var timeInMin = timeInSec / 60
+    var timeIn15 = timeInMin / min
+    var fixedTime = Math.floor(timeIn15.toDouble())
+    var timeInMs = fixedTime * min * 60 * 1000
+    return timeInMs.toLong()
+}
+fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
+    var timeInSec = theTime.toFloat() / 1000
+    var timeInMin = timeInSec / 60
+    var timeIn15 = timeInMin / min
+    var fixedTime = Math.ceil(timeIn15.toDouble())
+    var timeInMs = fixedTime * min * 60 * 1000
+    return timeInMs.toLong()
+}

@@ -19,11 +19,11 @@ import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import android.R.menu
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.view.MenuInflater
 import android.widget.EditText
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import co.chatsdk.core.dao.DaoCore
 import co.chatsdk.core.interfaces.ThreadType
 import co.chatsdk.core.session.ChatSDK
@@ -33,8 +33,10 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
+import com.almikey.jiplace.model.MyPlaceProfilePic
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.worker.UploadMyPlaceImageWorker
 import com.almikey.myplace.service.MyPlacesDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -330,6 +332,37 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                     myPlacesAdapter.notifyItemChanged(position)
                     Log.d("jiplace other", "n putting a location in jiplace other")
                 }
+        }
+    }
+@SuppressLint("AutoDispose")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                var uri: Uri = data.getData();
+               var theUuid = myPlacesAdapter.uuidForSelectedImage
+                // do you stuff here
+
+               myPlacesRepo.findByUuid(theUuid).take(1)
+                    .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
+                       var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri.toString()))
+                       myPlacesRepo.update(newPlace)
+                       var constraint: Constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                       var uploadMyPlaceImageWorker =
+                           OneTimeWorkRequestBuilder<UploadMyPlaceImageWorker>().addTag("place-picker").setInputData(
+                               Data.Builder()
+                                   .putString("UuidKey", it.uuidString)
+                                   .putAll(mapOf("fifteenMinGroupUp" to it.timeRoundUp,
+                                       "fifteenMinGroupDown" to it.timeRoundDown,
+                                       "localPicUri" to uri.toString()))
+                                   .build()
+                           )
+                               .setConstraints(constraint).build()
+                       WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
+
+
+                   }
+            }
         }
     }
 

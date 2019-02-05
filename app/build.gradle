@@ -194,4 +194,7 @@ dependencies {
     implementation "com.uber.autodispose:autodispose-android-ktx:$autodispose_version"
     implementation "com.uber.autodispose:autodispose-android-archcomponents-ktx:$autodispose_version"
 
+
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
 }
