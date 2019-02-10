@@ -13,7 +13,7 @@
     />
     <fragment
             android:id="@+id/jiplaces"
-            android:name="com.almikey.jiplace.ui.my_places.MyPlacesFragment"
+            android:name="com.almikey.jiplace.ui.my_places.places_list.MyPlacesFragment"
             android:label="my places"
             tools:layout="@layout/fragment_home_jiplace"
     >

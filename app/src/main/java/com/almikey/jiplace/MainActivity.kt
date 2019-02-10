@@ -19,20 +19,20 @@ class MainActivity : AppCompatActivity() {
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
-            R.id.jiplace_chats_menu-> {
-                if(firebaseAuth.uid!=null){
-                var intent = Intent(this@MainActivity, co.chatsdk.ui.main.MainActivity::class.java)
-                startActivity(intent)
-                return@OnNavigationItemSelectedListener true
-                }else{
+            R.id.jiplace_chats_menu -> {
+                if (firebaseAuth.uid != null) {
+                    var intent = Intent(this@MainActivity, co.chatsdk.ui.main.MainActivity::class.java)
+                    startActivity(intent)
+                    return@OnNavigationItemSelectedListener true
+                } else {
                     return@OnNavigationItemSelectedListener true
                 }
             }
-            R.id.jiplace_home_menu-> {
+            R.id.jiplace_home_menu -> {
                 findNavController(R.id.nav_host_fragment).navigate(R.id.theNewHome)
                 return@OnNavigationItemSelectedListener true
             }
-            R.id.jiplace_myplaces_menu->{
+            R.id.jiplace_myplaces_menu -> {
                 findNavController(R.id.nav_host_fragment).navigate(R.id.jiplaces)
                 return@OnNavigationItemSelectedListener true
             }
@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         navigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
     }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase))
     }

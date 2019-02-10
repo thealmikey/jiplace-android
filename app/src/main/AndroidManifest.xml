@@ -25,6 +25,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:node="merge">
+        <activity android:name=".ui.my_places.UserImageActivity">
+        </activity>
         <activity android:name=".ui.activity.CrunchyCalendary">
         </activity>
 
@@ -56,23 +58,34 @@
         </activity>
         <activity
                 android:name="co.chatsdk.ui.login.LoginActivity"
-                android:parentActivityName="com.almikey.jiplace.MainActivity"
                 android:noHistory="true"
-        >
+                android:parentActivityName=".MainActivity">
         </activity>
-        <activity android:name="co.chatsdk.ui.main.MainActivity"
-                  tools:replace="android:parentActivityName"
-                  android:parentActivityName="com.almikey.jiplace.MainActivity"
-        ></activity>
+        <activity
+                android:name="co.chatsdk.ui.main.MainActivity"
+                android:parentActivityName=".MainActivity"
+                tools:replace="android:parentActivityName"/>
+
         <provider
                 android:name="androidx.work.impl.WorkManagerInitializer"
                 android:authorities="${applicationId}.workmanager-init"
                 tools:node="remove"/>
+
         <service android:name=".service.MyPlaceFirebaseMessagingService">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
+
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="com.almikey.jiplace"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/paths"/>
+        </provider>
     </application>
 
 </manifest>

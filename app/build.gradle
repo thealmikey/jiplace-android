@@ -67,10 +67,12 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview-selection:1.0.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.0.1'
 
+    implementation 'org.apache.commons:commons-lang3:3.6'
+
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-places:16.0.0'
-    //testing libraries
+    //testing libraries:
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest:2.1'
     androidTestImplementation 'androidx.test:runner:1.1.1'

@@ -31,7 +31,8 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepository
 import com.almikey.jiplace.ui.activity.CrunchyCalendary
-import com.almikey.jiplace.ui.my_places.MyPlaceViewModel
+import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
+import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
 import com.almikey.jiplace.worker.MyPlacesFirebaseSyncWorker
@@ -49,15 +50,14 @@ import kotlinx.android.synthetic.main.fragment_new_home_jiplace.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 class NewHomeFragment : Fragment() {
 
 
-     val firebaseWorker by lazy{
-         var constraint: Constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-         OneTimeWorkRequestBuilder<MyPlacesFirebaseSyncWorker>().setConstraints(constraint).build()
-     }
+    val firebaseWorker by lazy {
+        var constraint: Constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        OneTimeWorkRequestBuilder<MyPlacesFirebaseSyncWorker>().setConstraints(constraint).build()
+    }
 
 
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
@@ -80,7 +80,7 @@ class NewHomeFragment : Fragment() {
 
         theProgressBar.visibility = View.VISIBLE
         jiPlaceNow.isEnabled = false
-        jiPlaceOther.isEnabled =false
+        jiPlaceOther.isEnabled = false
         ChatSDK.auth().authenticate(details)
             .observeOn(AndroidSchedulers.mainThread())
             .doFinally {
@@ -89,6 +89,7 @@ class NewHomeFragment : Fragment() {
                 jiPlaceNow.isEnabled = true
                 jiPlaceOther.isEnabled = true
                 NM.auth().authenticateWithCachedToken()
+                ChatSDK.core().goOnline()
             }.autoDisposable(scopeProvider)
             .subscribe({
                 Toast.makeText(activity, "i succeeded in making you an anon account", Toast.LENGTH_LONG)
@@ -110,6 +111,11 @@ class NewHomeFragment : Fragment() {
 
             } else {
                 NM.auth().authenticateWithCachedToken()
+                ChatSDK.core().goOnline()
+
+                var constraint: Constraints =
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                deleteThreadsFromOtherSide(scopeProvider)
             }
         }
 
@@ -175,6 +181,7 @@ class NewHomeFragment : Fragment() {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_new_home_jiplace, container, false)
     }
+
     @SuppressLint("AutoDispose")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

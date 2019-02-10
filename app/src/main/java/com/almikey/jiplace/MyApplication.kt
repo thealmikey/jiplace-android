@@ -1,6 +1,7 @@
 package com.almikey.jiplace
 
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
 import co.chatsdk.core.error.ChatSDKException
 import co.chatsdk.core.session.ChatSDK
@@ -14,14 +15,15 @@ import io.github.inflationx.viewpump.ViewPump
 import org.koin.android.ext.android.startKoin
 import androidx.work.WorkManager
 import co.chatsdk.core.interfaces.InterfaceAdapter
+import co.chatsdk.core.session.NM
 import co.chatsdk.firebase.FirebaseNetworkAdapter
 
 
-class MainApplication: MultiDexApplication() {
+class MainApplication : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         WorkManager.initialize(
             this,
             androidx.work.Configuration.Builder()
@@ -48,19 +50,17 @@ class MainApplication: MultiDexApplication() {
         val builder = co.chatsdk.core.session.Configuration.Builder(context)
         builder.firebaseRootPath("prod")
         builder.firebaseDatabaseURL("https://jiplace.firebaseio.com")
-        builder.setInboundPushHandlingEnabled(true)
         builder.setClientPushEnabled(true)
-        builder.disconnectFromFirebaseWhenInBackground(false)
-        builder.reuseDeleted1to1Threads(false)
+
         try {
-            ChatSDK.initialize(builder.build(), FirebaseNetworkAdapter(),BaseInterfaceAdapter(context)!!)
+            ChatSDK.initialize(builder.build(), FirebaseNetworkAdapter(), BaseInterfaceAdapter(context))
         } catch (e: ChatSDKException) {
         }
         FirebaseFileStorageModule.activate()
         FirebasePushModule.activate()
-        startKoin (this, listOf(KoinModules.modules))
-    }
 
+        startKoin(this, listOf(KoinModules.modules))
+    }
 
 
 }
