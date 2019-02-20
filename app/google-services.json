@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "538602577810",
+    "firebase_url": "https://jiplace.firebaseio.com",
+    "project_id": "jiplace",
+    "storage_bucket": "jiplace.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538602577810:android:5c2ca25a2ae207e9",
+        "android_client_info": {
+          "package_name": "com.almikey.jiplace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538602577810-qe8hpvlh1rh92akfre20npv0ce5bdefo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
