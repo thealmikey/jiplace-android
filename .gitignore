@@ -66,9 +66,6 @@ captures/
 # Uncomment the following line if you do not want to check your keystore files in.
 #*.jks
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
 # Freeline
 freeline.py
 freeline/

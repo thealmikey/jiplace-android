@@ -40,15 +40,28 @@ android {
         applicationId "com.almikey.jiplace"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 6
+        versionName "1.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
+
     }
     buildTypes {
         release {
             minifyEnabled false
+            release {
+//                manifestPlaceholders = [ mapApiKeyValue:"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
     testOptions {
         unitTests {
@@ -198,6 +211,6 @@ dependencies {
 
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    implementation 'org.webrtc:google-webrtc:1.0.26405'
+//    implementation 'org.webrtc:google-webrtc:1.0.20284'
 
 }

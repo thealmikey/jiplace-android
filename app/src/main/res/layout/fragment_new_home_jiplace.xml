@@ -8,23 +8,24 @@
         tools:context=".ui.homepage.NewHomeFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-            android:text="R-Bee>"
-            android:textColor="@color/calendar_month_text_color"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="44sp"
-            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="64dp"
-            android:layout_marginStart="64dp" android:layout_marginTop="460dp"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="MissingPrefix"
-            fontPath="fonts/true-crimes.ttf"
-            tools:text="R-Bee>"
-            android:id="@+id/textView4" android:layout_marginEnd="8dp" app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginRight="8dp" app:layout_constraintHorizontal_bias="0.41"
-            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="8dp"
-            app:layout_constraintVertical_bias="0.0"/>
+    <!--<TextView-->
+            <!--android:text="R-Bee>"-->
+            <!--android:textColor="@color/calendar_month_text_color"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:textSize="44sp"-->
+            <!--app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="64dp"-->
+            <!--android:layout_marginStart="64dp" android:layout_marginTop="460dp"-->
+            <!--app:layout_constraintTop_toTopOf="parent"-->
+            <!--tools:ignore="MissingPrefix"-->
+            <!--fontPath="fonts/true-crimes.ttf"-->
+            <!--tools:text="R-Bee>"-->
+            <!--android:id="@+id/textView4" android:layout_marginEnd="8dp" app:layout_constraintEnd_toEndOf="parent"-->
+            <!--android:layout_marginRight="8dp" app:layout_constraintHorizontal_bias="0.41"-->
+            <!--app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="8dp"-->
+            <!--app:layout_constraintVertical_bias="0.0"/>-->
     <Button
+            android:theme="@style/Platform.MaterialComponents.Light"
             android:text="JiPlace Now"
             android:id="@+id/jiPlaceNow"
             android:layout_width="wrap_content"
@@ -35,6 +36,7 @@
             app:layout_constraintTop_toTopOf="parent"
     />
     <Button
+            android:theme="@style/Platform.MaterialComponents.Light"
             android:text="JiPlace Other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
