@@ -1,0 +1,294 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "95d945afea3dd9835e9097460cd0c8a8",
+    "entities": [
+      {
+        "tableName": "MyPlace",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`jid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuidString` TEXT NOT NULL, `time` INTEGER NOT NULL, `timeRoundUp` INTEGER NOT NULL, `timeRoundDown` INTEGER NOT NULL, `hint` TEXT NOT NULL, `image` TEXT NOT NULL, `people` INTEGER NOT NULL, `newPeople` INTEGER NOT NULL, `workSync` INTEGER NOT NULL, `firebaseSync` INTEGER NOT NULL, `deletedStatus` TEXT NOT NULL, `jiplaceOther` INTEGER NOT NULL, `dateAdded` INTEGER NOT NULL, `longitude` REAL NOT NULL, `latitude` REAL NOT NULL, `firebasePicUrl` TEXT NOT NULL, `localPicUrl` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "jid",
+            "columnName": "jid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuidString",
+            "columnName": "uuidString",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeRoundUp",
+            "columnName": "timeRoundUp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeRoundDown",
+            "columnName": "timeRoundDown",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hint",
+            "columnName": "hint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "image",
+            "columnName": "image",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "people",
+            "columnName": "people",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "newPeople",
+            "columnName": "newPeople",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workSync",
+            "columnName": "workSync",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firebaseSync",
+            "columnName": "firebaseSync",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deletedStatus",
+            "columnName": "deletedStatus",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jiplaceOther",
+            "columnName": "jiplaceOther",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateAdded",
+            "columnName": "dateAdded",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "location.longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "location.latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profile.firebasePicUrl",
+            "columnName": "firebasePicUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profile.localPicUrl",
+            "columnName": "localPicUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "jid"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_MyPlace_uuidString",
+            "unique": true,
+            "columnNames": [
+              "uuidString"
+            ],
+            "createSql": "CREATE UNIQUE INDEX `index_MyPlace_uuidString` ON `${TABLE_NAME}` (`uuidString`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "MyPlaceUserShared",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myPlaceSharedId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `otherUserId` TEXT NOT NULL, `sharedJiplaces` TEXT NOT NULL, FOREIGN KEY(`sharedJiplaces`) REFERENCES `MyPlace`(`uuidString`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`otherUserId`) REFERENCES `OtherUser`(`firebaseUid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "myPlaceSharedId",
+            "columnName": "myPlaceSharedId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "otherUserId",
+            "columnName": "otherUserId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sharedJiplaces",
+            "columnName": "sharedJiplaces",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "myPlaceSharedId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "MyPlace",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sharedJiplaces"
+            ],
+            "referencedColumns": [
+              "uuidString"
+            ]
+          },
+          {
+            "table": "OtherUser",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "otherUserId"
+            ],
+            "referencedColumns": [
+              "firebaseUid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "OtherUser",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`otherId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `firebaseUid` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "otherId",
+            "columnName": "otherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firebaseUid",
+            "columnName": "firebaseUid",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "otherId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_OtherUser_firebaseUid",
+            "unique": true,
+            "columnNames": [
+              "firebaseUid"
+            ],
+            "createSql": "CREATE UNIQUE INDEX `index_OtherUser_firebaseUid` ON `${TABLE_NAME}` (`firebaseUid`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "MyPlacePicture",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`picId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `firebasePicUrl` TEXT NOT NULL, `localPicUrl` TEXT NOT NULL, `placeUUID` TEXT NOT NULL, FOREIGN KEY(`placeUUID`) REFERENCES `MyPlace`(`uuidString`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "picId",
+            "columnName": "picId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firebasePicUrl",
+            "columnName": "firebasePicUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localPicUrl",
+            "columnName": "localPicUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "placeUUID",
+            "columnName": "placeUUID",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "picId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_MyPlacePicture_picId",
+            "unique": true,
+            "columnNames": [
+              "picId"
+            ],
+            "createSql": "CREATE UNIQUE INDEX `index_MyPlacePicture_picId` ON `${TABLE_NAME}` (`picId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "MyPlace",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "placeUUID"
+            ],
+            "referencedColumns": [
+              "uuidString"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"95d945afea3dd9835e9097460cd0c8a8\")"
+    ]
+  }
+}
