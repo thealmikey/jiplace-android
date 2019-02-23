@@ -15,7 +15,7 @@ class MyPlacesListDiff (private val oldList: List<MyPlace>, private val newList:
     override fun getNewListSize(): Int {
         return newList.size
     }
-
+//hey
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         return oldList[oldItemPosition].hint == newList[newItemPosition].hint
     }
