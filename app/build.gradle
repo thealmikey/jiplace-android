@@ -98,9 +98,12 @@ dependencies {
 
     implementation 'org.apache.commons:commons-lang3:3.6'
 
-    implementation 'com.google.android.gms:play-services-maps:16.0.0'
-    implementation 'com.google.android.gms:play-services-location:16.0.0'
-    implementation 'com.google.android.gms:play-services-places:16.0.0'
+    implementation 'com.google.android.libraries.places:places:1.0.0'
+    implementation 'com.google.android.libraries.places:places-compat:1.0.0'
+//
+//    implementation 'com.google.android.gms:play-services-maps:16.0.0'
+//    implementation 'com.google.android.gms:play-services-location:16.0.0'
+//    implementation 'com.google.android.gms:play-services-places:16.0.0'
     //testing libraries:
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest:2.1'
