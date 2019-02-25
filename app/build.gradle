@@ -10,6 +10,9 @@ apply plugin: "androidx.navigation.safeargs"
 
 apply plugin: 'kotlin-kapt'
 
+apply plugin: 'project-report'
+
+
 
 ext.versionMajor = 1;
 ext.versionMinor = 0;
@@ -55,8 +58,8 @@ android {
         applicationId "com.almikey.jiplace"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode computeVersionCode()
-        versionName computeVersionName()
+        versionCode 7
+        versionName "1.0.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -68,7 +71,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             release {
                 versionNameSuffix "(build ${jenkinsBuildNumber})"
 //                manifestPlaceholders = [ mapApiKeyValue:"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
@@ -99,7 +102,6 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.6'
 
     implementation 'com.google.android.libraries.places:places:1.0.0'
-    implementation 'com.google.android.libraries.places:places-compat:1.0.0'
 //
 //    implementation 'com.google.android.gms:play-services-maps:16.0.0'
 //    implementation 'com.google.android.gms:play-services-location:16.0.0'
@@ -111,7 +113,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     androidTestImplementation "org.koin:koin-test:1.0.2"
     testImplementation 'org.robolectric:robolectric:4.1'
-    testImplementation "com.google.truth:truth:0.42"
+//    testImplementation "com.google.truth:truth:0.42"
     // https://mvnrepository.com/artifact/com.google.android.material/material
     implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
     implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
@@ -143,16 +145,17 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.1.0'
 
 
-    def nav_version = "1.0.0-alpha11"
+    def nav_version = "1.0.0-rc01"
     implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version" // use -ktx for Kotlin
     implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
 
-    def work_version = "1.0.0-beta02"
-    implementation "android.arch.work:work-runtime-ktx:$work_version" // use -ktx for Kotlin+Coroutines
-    implementation "android.arch.work:work-rxjava2:$work_version"
-    implementation "android.arch.work:work-rxjava2:$work_version"
-    androidTestImplementation "android.arch.work:work-testing:$work_version"
-
+    def work_version = "1.0.0-rc02"
+    implementation ("android.arch.work:work-runtime-ktx:$work_version"){
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
+    // use -ktx for Kotlin+Coroutines
+    //implementation "android.arch.work:work-rxjava2:$work_version"
+    //androidTestImplementation "android.arch.work:work-testing:$work_version"
     //coroutines
     //https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-android
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0'
@@ -188,18 +191,18 @@ dependencies {
     implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.5.7'
 
     //firebase
-    implementation 'com.google.firebase:firebase-core:16.0.6'
-    implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-core:16.0.7'
+    implementation 'com.google.firebase:firebase-database:16.0.6'
     implementation 'com.google.firebase:firebase-storage:16.0.5'
-    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.google.firebase:firebase-messaging:17.4.0'
     implementation 'com.google.firebase:firebase-auth:16.1.0'
-    implementation "com.google.firebase:firebase-iid:17.0.4"
-    implementation 'com.google.firebase:firebase-analytics:16.0.6'
+    implementation "com.google.firebase:firebase-iid:17.1.0"
+    implementation 'com.google.firebase:firebase-analytics:16.3.0'
 
     implementation 'com.github.mukeshsolanki:country-picker-android:2.0.1'
 
     //rooom database
-    def room_version = "2.1.0-alpha03"
+    def room_version = "2.1.0-alpha04"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version" // use kapt for Kotlin
     implementation "androidx.room:room-rxjava2:$room_version"
@@ -229,7 +232,9 @@ dependencies {
     implementation "com.uber.autodispose:autodispose-android-archcomponents-ktx:$autodispose_version"
 
     implementation 'com.squareup.picasso:picasso:2.71828'
-
-//    implementation 'org.webrtc:google-webrtc:1.0.20284'
-
+    implementation 'com.google.guava:guava:26.0-android'
+////    implementation 'org.webrtc:google-webrtc:1.0.20284'
+//    implementation ("android.arch.work:work-runtime:$work_version") {
+//        exclude group: 'com.google.guava', module: 'listenablefuture'
+//    }
 }

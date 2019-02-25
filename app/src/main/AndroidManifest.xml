@@ -19,10 +19,23 @@
         android:name="android.permission.GET_ACCOUNTS"
         tools:node="remove" />
     <uses-permission
-            android:name="android.permission.ANSWER_PHONE_CALLS"
+            android:name="android.permission.RECEIVE_SMS"
             tools:node="remove" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"
-                     tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.READ_SMS"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.SEND_SMS"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.WRITE_SMS"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.RECEIVE_WAP_PUSH"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.RECEIVE_MMS"
+            tools:node="remove" />
     <uses-permission
             android:name="android.permission.READ_CALL_LOG"
             tools:node="remove" />
@@ -30,19 +43,7 @@
             android:name="android.permission.WRITE_CALL_LOG"
             tools:node="remove" />
     <uses-permission
-            android:name="android.permission.READ_SMS"
-            tools:node="remove" />
-    <uses-permission
-            android:name="android.permission.WRITE_SMS"
-            tools:node="remove" />
-    <uses-permission
-            android:name="android.permission.RECEIVE_SMS"
-            tools:node="remove" />
-    <uses-permission
-            android:name="android.permission.RECEIVE_WAP_PUSH"
-            tools:node="remove" />
-    <uses-permission
-            android:name="android.permission.RECEIVE_MMS"
+            android:name="android.permission.PROCESS_OUTGOING_CALLS"
             tools:node="remove" />
 
 

@@ -13,8 +13,10 @@ import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepository
 import com.almikey.jiplace.util.TimePickerFragment
 import com.almikey.jiplace.worker.PlacePickerWorker
-import com.google.android.gms.location.places.Place
-import com.google.android.gms.location.places.ui.PlacePicker
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import com.uber.autodispose.lifecycle.autoDisposable
@@ -93,18 +95,28 @@ class CrunchyCalendary : AppCompatActivity() {
 
         submitSelectedDate.setOnClickListener {
             submitSelectedDate.isEnabled = false
-            val builder = PlacePicker.IntentBuilder()
-            startActivityForResult(builder.build(this), 5)
+            if (!Places.isInitialized()) {
+                Places.initialize(getApplicationContext(),"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew");
+            }
+            // Set the fields to specify which types of place data to return.
+            var fields:List<Place.Field> = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
+
+            // Start the autocomplete intent.
+            var intent:Intent = Autocomplete.IntentBuilder(
+                AutocompleteActivityMode.FULLSCREEN, fields)
+                .build(this);
+            startActivityForResult(intent, 5);
+
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 5) {
             if (resultCode == RESULT_OK) {
-                var place: Place = PlacePicker.getPlace(data, this);
+                var place: Place = Autocomplete.getPlaceFromIntent(data!!);
                 var loc = place.latLng
-                var lat = loc.latitude.toFloat().toString()
-                var lon = loc.longitude.toFloat().toString()
+                var lat = loc!!.latitude.toFloat().toString()
+                var lon = loc!!.longitude.toFloat().toString()
                 var placePickWorker =
                     OneTimeWorkRequestBuilder<PlacePickerWorker>().addTag("place-picker").setInputData(
                         Data.Builder()

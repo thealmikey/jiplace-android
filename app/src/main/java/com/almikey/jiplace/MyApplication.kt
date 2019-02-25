@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 import co.chatsdk.core.interfaces.InterfaceAdapter
 import co.chatsdk.core.session.NM
 import co.chatsdk.firebase.FirebaseNetworkAdapter
+import com.google.android.libraries.places.api.Places
 
 
 class MainApplication : MultiDexApplication() {
@@ -24,6 +25,9 @@ class MainApplication : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        Places.initialize(applicationContext,"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew")
+
         WorkManager.initialize(
             this,
             androidx.work.Configuration.Builder()
