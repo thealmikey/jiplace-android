@@ -39,6 +39,9 @@ import java.util.*
 class CrunchyCalendary : AppCompatActivity() {
 
 
+
+    var jiplaceCompleted:Boolean = false
+
     private val scopeProvider by lazy {
         AndroidLifecycleScopeProvider.from(this)
     }
@@ -144,6 +147,7 @@ class CrunchyCalendary : AppCompatActivity() {
                 val resultIntent = Intent()
                 resultIntent.putExtra("theUuid", "$theUUId")
                 setResult(Activity.RESULT_OK, resultIntent)
+                jiplaceCompleted = true
                 finish()
             }
         }
@@ -151,7 +155,11 @@ class CrunchyCalendary : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle?, outPersistentState: PersistableBundle?) {
         super.onSaveInstanceState(outState, outPersistentState)
-        outState!!.putString("theUuid",theUUId);
+        if(!jiplaceCompleted) {
+            outState!!.putString("theUuid", theUUId);
+        }else{
+        outState!!.clear()
+        }
     }
 
 }
