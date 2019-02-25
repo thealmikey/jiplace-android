@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.util.Log
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
@@ -11,6 +12,7 @@ import androidx.work.WorkManager
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.ui.map.JiplaceMapsActivity
 import com.almikey.jiplace.util.TimePickerFragment
 import com.almikey.jiplace.worker.PlacePickerWorker
 import com.google.android.libraries.places.api.Places
@@ -44,13 +46,17 @@ class CrunchyCalendary : AppCompatActivity() {
 
     lateinit var theMainDate: Date;
     val myPlacesRepo: MyPlacesRepository by inject()
-    var theUUId = UUID.randomUUID().toString()
+    lateinit var theUUId:String
     var theLateTime: Date? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crunchy_calendary)
-
+        if(savedInstanceState?.getString("theUuid")==null){
+         theUUId= UUID.randomUUID().toString()
+        }else{
+            theUUId = savedInstanceState.getString("theUuid")
+        }
         Observable.create<Unit> {
             myPlacesRepo.addMyPlace(MyPlace(uuidString = theUUId))
         }.flatMap { _ ->
@@ -95,17 +101,21 @@ class CrunchyCalendary : AppCompatActivity() {
 
         submitSelectedDate.setOnClickListener {
             submitSelectedDate.isEnabled = false
-            if (!Places.isInitialized()) {
-                Places.initialize(getApplicationContext(),"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew");
-            }
-            // Set the fields to specify which types of place data to return.
-            var fields:List<Place.Field> = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
-
-            // Start the autocomplete intent.
-            var intent:Intent = Autocomplete.IntentBuilder(
-                AutocompleteActivityMode.FULLSCREEN, fields)
-                .build(this);
-            startActivityForResult(intent, 5);
+//            if (!Places.isInitialized()) {
+//                Places.initialize(getApplicationContext(),"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew");
+//            }
+//            // Set the fields to specify which types of place data to return.
+//            var fields:List<Place.Field> = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
+//
+//            // Start the autocomplete intent.
+//            var intent:Intent = Autocomplete.IntentBuilder(
+//                AutocompleteActivityMode.FULLSCREEN, fields)
+//                .build(this);
+//
+//            var mapIntent:Intent = Intent(this,JiplaceMapsActivity::class.java)
+//            startActivityForResult(mapIntent, 4);
+            var mapIntent:Intent = Intent(this,JiplaceMapsActivity::class.java)
+            startActivityForResult(mapIntent, 5);
 
         }
     }
@@ -113,10 +123,14 @@ class CrunchyCalendary : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 5) {
             if (resultCode == RESULT_OK) {
-                var place: Place = Autocomplete.getPlaceFromIntent(data!!);
-                var loc = place.latLng
-                var lat = loc!!.latitude.toFloat().toString()
-                var lon = loc!!.longitude.toFloat().toString()
+                val theUuid = data?.getStringExtra("theUuid")
+//                var place: Place = Autocomplete.getPlaceFromIntent(data!!);
+//                var loc = place.latLng
+//                var lat = loc!!.latitude.toFloat().toString()
+                var lat = data?.getDoubleExtra("latitude",69.toDouble())
+//                var lon = loc!!.longitude.toFloat().toString()
+                var lon = data?.getDoubleExtra("longitude",69.toDouble())
+                var placeName = data?.getStringExtra("placeName")
                 var placePickWorker =
                     OneTimeWorkRequestBuilder<PlacePickerWorker>().addTag("place-picker").setInputData(
                         Data.Builder()
@@ -133,6 +147,11 @@ class CrunchyCalendary : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?, outPersistentState: PersistableBundle?) {
+        super.onSaveInstanceState(outState, outPersistentState)
+        outState!!.putString("theUuid",theUUId);
     }
 
 }

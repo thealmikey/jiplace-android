@@ -1,9 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          xmlns:map="http://schemas.android.com/apk/res-auto"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              xmlns:map="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:weightSum="1">
+
+    <TextView
+            android:text="Please make sure to write in the text box where you want to Jiplace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/jiplaceHelperHint"/>
+    <fragment android:id="@+id/autocomplete_fragment"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+/>
+
+<fragment android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight=".90"
           android:id="@+id/map"
           tools:context=".ui.map.JiplaceMapsActivity"
           android:name="com.google.android.gms.maps.SupportMapFragment"/>
+   <LinearLayout
+           android:orientation="horizontal"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content">
+       <Button
+               android:enabled="false"
+               android:id="@+id/selectJiplaceButton"
+               android:text="Select this place"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"/>
+       <TextView
+               android:id="@+id/theSelectedJiplace"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"/>
+   </LinearLayout>
+</LinearLayout>
