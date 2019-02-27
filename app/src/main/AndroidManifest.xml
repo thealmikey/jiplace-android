@@ -76,7 +76,7 @@
 
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value="AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"/>
+                android:value="${mapApiKeyValue}"/>
          <activity
          android:name=".ui.map.JiplaceMapsActivity"
          android:label="jiplace maps">

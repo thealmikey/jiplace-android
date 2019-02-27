@@ -17,14 +17,14 @@ apply plugin: 'project-report'
 ext.versionMajor = 1;
 ext.versionMinor = 0;
 ext.versionPatch = 0;
-ext.jenkinsBuildNumber = Integer.valueOf(System.env.BUILD_NUMBER ?: 0)
+ext.jenkinsBuildNumber = 2
 
-def computeVersionName(){
+def computeVersionName() {
     return "${versionMajor}.${versionMinor}.${versionPatch}"
 }
 
-def computeVersionCode(){
-    return (versionMajor * 100_000)+(versionMinor * 10_000)+(versionPatch*1_000) + jenkinsBuildNumber
+def computeVersionCode() {
+    return (versionMajor * 100_000) + (versionMinor * 10_000) + (versionPatch * 1_000) + jenkinsBuildNumber
 }
 
 
@@ -35,6 +35,8 @@ android {
     useLibrary 'android.test.mock'
     lintOptions {
         abortOnError false
+        checkReleaseBuilds false
+
     }
 
     repositories {
@@ -58,8 +60,8 @@ android {
         applicationId "com.almikey.jiplace"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 7
-        versionName "1.0.6"
+        versionCode 10
+        versionName "1.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -71,11 +73,15 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             release {
                 versionNameSuffix "(build ${jenkinsBuildNumber})"
-//                manifestPlaceholders = [ mapApiKeyValue:"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
+                manifestPlaceholders = [mapApiKeyValue: "AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ"]
             }
+            debug {
+                manifestPlaceholders = [mapApiKeyValue: "AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
+            }
+
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -114,8 +120,8 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     androidTestImplementation "org.koin:koin-test:1.0.2"
-    testImplementation 'org.robolectric:robolectric:4.1'
-//    testImplementation "com.google.truth:truth:0.42"
+//    testImplementation 'org.robolectric:robolectric:4.1'
+ //   testImplementation "com.google.truth:truth:0.42"
     // https://mvnrepository.com/artifact/com.google.android.material/material
     implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
     implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
@@ -232,9 +238,9 @@ dependencies {
     implementation "com.uber.autodispose:autodispose-lifecycle-ktx:$autodispose_version"
     implementation "com.uber.autodispose:autodispose-android-ktx:$autodispose_version"
     implementation "com.uber.autodispose:autodispose-android-archcomponents-ktx:$autodispose_version"
+ //   implementation "com.google.guava:guava:23.5-android"
 
     implementation 'com.squareup.picasso:picasso:2.71828'
-    implementation 'com.google.guava:guava:26.0-android'
 ////    implementation 'org.webrtc:google-webrtc:1.0.20284'
 //    implementation ("android.arch.work:work-runtime:$work_version") {
 //        exclude group: 'com.google.guava', module: 'listenablefuture'

@@ -26,7 +26,7 @@ class MainApplication : MultiDexApplication() {
         super.onCreate()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
-        Places.initialize(applicationContext,"AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew")
+        Places.initialize(applicationContext,"AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ")
 
         WorkManager.initialize(
             this,

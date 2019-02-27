@@ -8,7 +8,8 @@
               android:weightSum="1">
 
     <TextView
-            android:text="Please make sure to write in the text box where you want to Jiplace"
+            android:textSize="20sp"
+            android:text="Input location to Jiplace below"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/jiplaceHelperHint"/>
     <fragment android:id="@+id/autocomplete_fragment"
