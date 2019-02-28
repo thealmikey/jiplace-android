@@ -17,7 +17,7 @@ apply plugin: 'project-report'
 ext.versionMajor = 1;
 ext.versionMinor = 0;
 ext.versionPatch = 0;
-ext.jenkinsBuildNumber = 2
+ext.jenkinsBuildNumber = 4
 
 def computeVersionName() {
     return "${versionMajor}.${versionMinor}.${versionPatch}"
@@ -33,10 +33,10 @@ android {
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
+
     lintOptions {
         abortOnError false
         checkReleaseBuilds false
-
     }
 
     repositories {
@@ -60,7 +60,7 @@ android {
         applicationId "com.almikey.jiplace"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 10
+        versionCode 12
         versionName "1.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
@@ -74,16 +74,15 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            release {
-                versionNameSuffix "(build ${jenkinsBuildNumber})"
-                manifestPlaceholders = [mapApiKeyValue: "AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ"]
-            }
-            debug {
-                manifestPlaceholders = [mapApiKeyValue: "AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
-            }
+            versionNameSuffix "(build ${jenkinsBuildNumber})"
+            manifestPlaceholders = [mapApiKeyValue: "AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ"]
 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            manifestPlaceholders = [mapApiKeyValue: "AIzaSyDW8L00sRZazeA-3IszCZr70scdmmsc9Ew"]
+        }
+
     }
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
@@ -121,7 +120,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     androidTestImplementation "org.koin:koin-test:1.0.2"
 //    testImplementation 'org.robolectric:robolectric:4.1'
- //   testImplementation "com.google.truth:truth:0.42"
+    //   testImplementation "com.google.truth:truth:0.42"
     // https://mvnrepository.com/artifact/com.google.android.material/material
     implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
     implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
@@ -158,7 +157,7 @@ dependencies {
     implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
 
     def work_version = "1.0.0-rc02"
-    implementation ("android.arch.work:work-runtime-ktx:$work_version"){
+    implementation("android.arch.work:work-runtime-ktx:$work_version") {
         exclude group: 'com.google.guava', module: 'listenablefuture'
     }
     // use -ktx for Kotlin+Coroutines
@@ -180,7 +179,6 @@ dependencies {
     implementation 'org.koin:koin-android:1.0.2'
     implementation 'org.koin:koin-androidx-scope:1.0.2'
     implementation 'org.koin:koin-androidx-viewmodel:1.0.2'
-
 
     implementation 'com.airbnb.android:lottie:2.8.0'
 
@@ -224,8 +222,8 @@ dependencies {
     implementation 'com.firebase:geofire-android:2.3.1'
     implementation 'de.hdodenhof:circleimageview:2.2.0'
 
-    def arrow_version = "0.8.2"
-    implementation "io.arrow-kt:arrow-core:$arrow_version"
+//    def arrow_version = "0.8.2"
+//    implementation "io.arrow-kt:arrow-core:$arrow_version"
 
     def anko_version = "0.10.8"
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
@@ -238,7 +236,7 @@ dependencies {
     implementation "com.uber.autodispose:autodispose-lifecycle-ktx:$autodispose_version"
     implementation "com.uber.autodispose:autodispose-android-ktx:$autodispose_version"
     implementation "com.uber.autodispose:autodispose-android-archcomponents-ktx:$autodispose_version"
- //   implementation "com.google.guava:guava:23.5-android"
+    //   implementation "com.google.guava:guava:23.5-android"
 
     implementation 'com.squareup.picasso:picasso:2.71828'
 ////    implementation 'org.webrtc:google-webrtc:1.0.20284'
