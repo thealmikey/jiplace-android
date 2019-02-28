@@ -369,7 +369,10 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                 var theUuid = myPlacesAdapter.uuidForSelectedImage
                 var thePosition = myPlacesAdapter.thePosition
                 // do you stuff here
-
+                var thePlaces =  myPlaces.toMutableList()
+                thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = "placeholder"))
+                myPlacesAdapter.myplaces = thePlaces
+                mRecyclerview.adapter!!.notifyItemChanged(thePosition)
                 myPlacesRepo.findByUuid(theUuid).take(1)
                     .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
                         var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
@@ -377,7 +380,19 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                         Completable.fromAction {
                             myPlacesRepo.update(newPlace)
                         }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                            mRecyclerview.adapter!!.notifyItemChanged(thePosition)
+                            myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
+                                .autoDisposable(scopeProvider)
+                                .subscribe {
+                                    myPlaces.clear()
+                                    it.forEach {
+                                        if (it.deletedStatus == "false") {
+                                            myPlaces.add(it)
+                                        }
+
+                                    }
+                                    myPlacesAdapter.notifyDataSetChanged()
+                                }
+//                            mRecyclerview.adapter!!.notifyItemChanged(thePosition)
                             Log.d("adapter notify", "after loading adapter notify")
                         }
                         var constraint: Constraints =
@@ -398,6 +413,13 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                                 .setConstraints(constraint).build()
                         WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
                     }
+            } else {
+                var thePosition = myPlacesAdapter.thePosition
+                var thePlaces =  myPlaces.toMutableList()
+                thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = ""))
+                myPlacesAdapter.myplaces = thePlaces
+                mRecyclerview.adapter = MyPlaceAdapter(this,thePlaces)
+                mRecyclerview.adapter!!.notifyItemChanged(thePosition)
             }
         }
     }

@@ -377,6 +377,16 @@ class MyPlacesUserFragment : Fragment() {
                     i.putExtras(b);
                     context.activity!!.startActivity(i)
                 }
+            }else{
+                if (imageUrls.isEmpty()){
+                    Picasso.get().load(R.drawable.myuser)
+                        .config(Bitmap.Config.RGB_565)
+                        .fit()
+                        .centerCrop()
+                        .placeholder(R.drawable.myuser)
+                        .error(R.drawable.myuser)
+                        .into(viewHolder.itemView.myplace_user_pic);
+                }
             }
 
             viewHolder.itemView.jiplaceCall.setOnClickListener {

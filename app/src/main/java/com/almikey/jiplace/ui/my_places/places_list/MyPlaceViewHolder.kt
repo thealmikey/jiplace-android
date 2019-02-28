@@ -46,11 +46,11 @@ class MyPlaceViewHolder(var context: Fragment, var view: View) : KoinComponent
         itemLatitude.text = myPlace.location.latitude.toString()
         itemLongitude.text = myPlace.location.longitude.toString()
 
-        if (!myPlace.profile.localPicUrl.trim().isEmpty() && myPlace.profile.localPicUrl.trim().isEmpty()) {
+        if (!myPlace.profile.localPicUrl.trim().isEmpty() && myPlace.profile.firebasePicUrl.trim().isEmpty()) {
             // val picture = BitmapFactory.decodeStream(context.activity!!.contentResolver.openInputStream(Uri.parse(myPlace.profile.localPicUrl)))
 
             Log.d("image path", "file://" + myPlace.profile.localPicUrl)
-            var cb = Picasso.get().load(File(myPlace.profile.localPicUrl))
+            var cb = Picasso.get().load(R.drawable.myplace_image_loading)
                 .error(R.drawable.myplace_image_loading)
                 .placeholder(R.drawable.myplace_image_loading)
                 .config(Bitmap.Config.RGB_565)
