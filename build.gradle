@@ -7,12 +7,16 @@ buildscript {
         maven { url "https://maven.google.com" }
         maven { url "http://dl.bintray.com/chat-sdk/chat-sdk-android" }
         maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.0.1'
         classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha09"
+        classpath 'io.fabric.tools:gradle:1.26.1'
+        classpath 'com.google.firebase:firebase-plugins:1.1.5'
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
