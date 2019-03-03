@@ -75,6 +75,10 @@ android {
         ndk {
 //abiFilters 'armeabi', 'armeabi-v7a'
             abiFilters 'armeabi-v7a'
+            enable true
+            reset()
+            include 'x86', 'x86_64'
+            universalApk false
         }
     }
     buildTypes {
