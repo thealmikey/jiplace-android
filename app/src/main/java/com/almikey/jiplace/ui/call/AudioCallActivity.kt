@@ -84,7 +84,8 @@ class AudioCallActivity : AppCompatActivity() {
             otherUser = b!!.getString("other_user_to_call")
             addStreamToLocalPeer()
             if (!otherUser.isEmpty() && otherUser != null) {
-                onOfferReceived()
+//                onOfferReceived()
+                doCall()
             }
         }
         audio_call_button.setOnClickListener {
@@ -140,66 +141,67 @@ class AudioCallActivity : AppCompatActivity() {
 //     * This method is called when the app is initiator - We generate the offer and send it over through socket
 //     * to remote peer
 //     */
-//    private fun doCall() {
-//        localPeer!!.createOffer(object : SdpObserver {
-//            override fun onSetSuccess() {
-//                Log.d("offer", "set success")
-//            }
-//
-//            override fun onCreateFailure(p0: String?) {
-//                Log.d("offer", "create failure")
-//            }
-//
-//            override fun onSetFailure(p0: String?) {
-//                Log.d("offer", "set failure")
-//            }
-//
-//            override fun onCreateSuccess(sessionDescription: SessionDescription) {
-//                var sessionDescription = sessionDescription
-//                localPeer!!.setLocalDescription(object : SdpObserver {
-//                    override fun onSetFailure(p0: String?) {
-//                        Log.d("setLocaldescription", "i failed in setting description")
-//                        return
-//                    }
-//
-//                    override fun onSetSuccess() {
-//                        Log.d("setLocaldescription", "i succeded in setting description")
-//                        var userRef =
-//                            return
-//                    }
-//
-//                    override fun onCreateSuccess(p0: SessionDescription?) {
-//                        var userWebRTCRef = ref.getReference("$userId/webrtc")
-//                        userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
-//                        userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
-//                        userWebRTCRef.child("call")
-//                            .child("$otherUser")
-//                            .child("oncall")
-//                            .setValue(true)
-//                        //we will have the firebase functions monitoring the /call part to send a message to $otherUser
-//                        // about the incoming call
-//                        return
-//                    }
-//
-//                    override fun onCreateFailure(p0: String?) {
-//                        return
-//                    }
-//
-//                }, sessionDescription)
-//                Log.d("onCreateSuccess", "SignallingClient emit ")
-////                SignallingClientKotlin.emitMessage(sessionDescription)
-//                //create a firebase sdp in ${callinguser}/webrtc/
-//            }
-//        }, sdpConstraints)
-//    }
+    private fun doCall() {
+        localPeer!!.createOffer(object : SdpObserver {
+            override fun onSetSuccess() {
+                Log.d("offer", "set success")
+            }
+
+            override fun onCreateFailure(p0: String?) {
+                Log.d("offer", "create failure")
+            }
+
+            override fun onSetFailure(p0: String?) {
+                Log.d("offer", "set failure")
+            }
+
+            override fun onCreateSuccess(sessionDescription: SessionDescription) {
+                var sessionDescription = sessionDescription
+                localPeer!!.setLocalDescription(object : SdpObserver {
+                    override fun onSetFailure(p0: String?) {
+                        Log.d("setLocaldescription", "i failed in setting description")
+                        return
+                    }
+
+                    override fun onSetSuccess() {
+                        Log.d("setLocaldescription", "i succeded in setting description")
+                        var userRef =
+                            return
+                    }
+
+                    override fun onCreateSuccess(p0: SessionDescription?) {
+                        var userWebRTCRef = ref.getReference("$userId/webrtc")
+                        userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
+                        userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
+                        userWebRTCRef.child("call")
+                            .child("$otherUser")
+                            .child("oncall")
+                            .setValue(true)
+                        //we will have the firebase functions monitoring the /call part to send a message to $otherUser
+                        // about the incoming call
+                        return
+                    }
+
+                    override fun onCreateFailure(p0: String?) {
+                        Log.d("i failed","setting sdp n stuff")
+                        return
+                    }
+
+                }, sessionDescription)
+                Log.d("onCreateSuccess", "SignallingClient emit ")
+//                SignallingClientKotlin.emitMessage(sessionDescription)
+                //create a firebase sdp in ${callinguser}/webrtc/
+            }
+        }, sdpConstraints)
+    }
 //
 //    /**
 //     * Received remote peer's media stream. we will get the first video track and render it
 //     */
-//    private fun gotRemoteStream(stream: MediaStream) {
-//        //we have remote video stream. add to the renderer.
-//        val audioTrack = stream.audioTracks[0]
-//    }
+    private fun gotRemoteStream(stream: MediaStream) {
+        //we have remote video stream. add to the renderer.
+        val audioTrack = stream.audioTracks[0]
+    }
 //
 //
 //    /**
