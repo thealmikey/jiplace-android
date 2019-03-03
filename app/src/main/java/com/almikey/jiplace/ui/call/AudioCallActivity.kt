@@ -79,8 +79,7 @@ class AudioCallActivity : AppCompatActivity() {
         start()
         // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
         runOnUiThread {
-            createPeerConnection()
-
+            localPeer = createPeerConnection()!!
             val b = this.intent.extras
             otherUser = b!!.getString("other_user_to_call")
             addStreamToLocalPeer()
