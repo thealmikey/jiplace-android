@@ -99,6 +99,7 @@ class AudioCallActivity : AppCompatActivity() {
         val audioConstraints = MediaConstraints()
         val sdpConstraints = MediaConstraints()
         val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
+        val videoSource = peerConnectionFactory.createVideoSource(false)
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
         gotUserMedia = true
     }
@@ -106,13 +107,13 @@ class AudioCallActivity : AppCompatActivity() {
     private fun createPeerConnection(): PeerConnection? {
 
         val rtcConfig = PeerConnection.RTCConfiguration(peerIceServers)
-//        rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
-//        rtcConfig.bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
-//        rtcConfig.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-//        rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-//        // Use ECDSA encryption.
-//        rtcConfig.keyType = PeerConnection.KeyType.ECDSA
-//        peerConnectionFactory.printInternalStackTraces(true)
+        rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
+        rtcConfig.bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
+        rtcConfig.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
+        rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
+        // Use ECDSA encryption.
+        rtcConfig.keyType = PeerConnection.KeyType.ECDSA
+        peerConnectionFactory.printInternalStackTraces(true)
         Log.d("peer connection","got here")
         return peerConnectionFactory
             .createPeerConnection(
