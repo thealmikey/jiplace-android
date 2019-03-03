@@ -1,4 +1,4 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.places_list
 
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +18,11 @@ class ContextMenuRecyclerView(context: Context) : RecyclerView(context) {
         val longPressPosition = getChildAdapterPosition(originalView)
         if (longPressPosition >= 0) {
             val longPressId = adapter!!.getItemId(longPressPosition)
-            mContextMenuInfo = RecyclerViewContextMenuInfo(longPressPosition, longPressId)
+            mContextMenuInfo =
+                RecyclerViewContextMenuInfo(
+                    longPressPosition,
+                    longPressId
+                )
             return super.showContextMenuForChild(originalView)
         }
         return false

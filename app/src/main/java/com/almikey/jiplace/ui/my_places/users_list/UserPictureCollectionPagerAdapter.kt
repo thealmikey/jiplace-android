@@ -1,4 +1,4 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.users_list
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

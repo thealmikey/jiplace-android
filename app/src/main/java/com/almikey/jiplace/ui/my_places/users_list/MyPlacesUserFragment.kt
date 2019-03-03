@@ -1,9 +1,8 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.users_list
 
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -12,34 +11,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.EmptyResultSetException
-import androidx.room.Room
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import co.chatsdk.core.dao.User
 import co.chatsdk.core.dao.Thread
 import co.chatsdk.core.session.ChatSDK
 import co.chatsdk.firebase.wrappers.UserWrapper
 
 import com.almikey.jiplace.R
-import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
 import com.almikey.jiplace.ui.call.AudioCallActivity
-import com.almikey.jiplace.util.ThreadCleanUp
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
-import com.almikey.jiplace.worker.DeleteThreadByOtherWorker
 import com.almikey.myplace.service.MyPlacesDao
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
-import com.firebase.geofire.GeoQueryDataEventListener
 import com.firebase.geofire.GeoQueryEventListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -52,12 +41,9 @@ import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
-import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.jiplaces_users_inplace_user_item.view.*
-import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MyPlacesUserFragment : Fragment() {
@@ -326,7 +312,15 @@ class MyPlacesUserFragment : Fragment() {
 
                             Log.d("username", "${userr}")
                             if (FirebaseAuth.getInstance().uid != userr) {
-                                groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment, theTime, user, userr!!, it))
+                                groupAdapter.add(
+                                    JiplaceUserItem(
+                                        this@MyPlacesUserFragment,
+                                        theTime,
+                                        user,
+                                        userr!!,
+                                        it
+                                    )
+                                )
                             }
                         }
                     }

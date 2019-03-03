@@ -31,21 +31,19 @@ class AudioCallActivity : AppCompatActivity() {
 
     lateinit var otherUser: String
 
-
-    private val peerConnectionFactory: PeerConnectionFactory by lazy {
         //Initialize PeerConnectionFactory globals.
         val initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this)
             .createInitializationOptions()
-        PeerConnectionFactory.initialize(initializationOptions)
-//        val audioDeviceModule = LegacyAudioDeviceModule()
-//        val audioEncoderFactoryFactory = BuiltinAudioEncoderFactoryFactory()
-//        var audioDecoderFactoryFactory = BuiltinAudioDecoderFactoryFactory()
-        PeerConnectionFactory.printStackTraces()
+        var po = PeerConnectionFactory.initialize(initializationOptions)
+
+       var pps =  PeerConnectionFactory.printStackTraces()
         val options = PeerConnectionFactory.Options()
         var peerConnectionFactoryBuilder =PeerConnectionFactory.builder()
             .setOptions(options)
-        PeerConnectionFactory.
-    }
+        private val peerConnectionFactory: PeerConnectionFactory =PeerConnectionFactory.builder()
+            .setOptions(options)
+            .createPeerConnectionFactory();
+
 
 //    "stun:stun.l.google.com:19302",
 //    "stun:stun1.l.google.com:19302",
@@ -59,8 +57,9 @@ class AudioCallActivity : AppCompatActivity() {
     fun getIceServers(servers: ArrayList<String>): ArrayList<PeerConnection.IceServer> {
         var iceServers: ArrayList<PeerConnection.IceServer> = ArrayList()
         for (theUrl in servers) {
-            iceServers.add(PeerConnection.IceServer.builder(theUrl).createIceServer())
-
+            var iceServerBuilder = PeerConnection.IceServer.builder(theUrl)
+            iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+            iceServers.add(iceServerBuilder.createIceServer())
         }
         return iceServers
     }
@@ -83,10 +82,10 @@ class AudioCallActivity : AppCompatActivity() {
 
         val b = this.intent.extras
         otherUser = b!!.getString("other_user_to_call")
-        //addStreamToLocalPeer()
-//        if (!otherUser.isEmpty() && otherUser != null) {
-//            onOfferReceived()
-//        }
+        addStreamToLocalPeer()
+        if (!otherUser.isEmpty() && otherUser != null) {
+            onOfferReceived()
+        }
         }
         audio_call_button.setOnClickListener {
             //doCall()
@@ -101,29 +100,7 @@ class AudioCallActivity : AppCompatActivity() {
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
         gotUserMedia = true
     }
-////
-////
-////    /**
-////     * This method will be called directly by the app when it is the initiator and has got the local media
-////     * or when the remote peer sends a message through socket that it is ready to transmit AV data
-////     * checks to make before starting the call
-////     */
-////    override fun onTryToStart() {
-////        runOnUiThread {
-////            if (!SignallingClientKotlin.isStarted && localVideoTrack != null && SignallingClientKotlin.isChannelReady) {
-////                createPeerConnection()
-////                SignallingClientKotlin.isStarted = true
-////                if (SignallingClientKotlin.isInitiator) {
-////                    doCall()
-////                }
-////            }
-////        }
-////    }
-////
-//
-//    /**
-//     * Creating the local peerconnection instance
-//     */
+
     private fun createPeerConnection(): PeerConnection? {
         val rtcConfig = PeerConnection.RTCConfiguration(peerIceServers)
         rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
@@ -136,7 +113,7 @@ class AudioCallActivity : AppCompatActivity() {
 //        peerConnectionFactory.printInternalStackTraces(true)
         return peerConnectionFactory
             .createPeerConnection(
-            rtcConfig,MediaConstraints(),PCObserver())
+            rtcConfig, MediaConstraints(),PCObserver())
 
 
     }
@@ -144,16 +121,16 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * Adding the stream to the localpeer
 //     */
-//    private fun addStreamToLocalPeer() {
-//        //creating local mediastream
-//        val stream = peerConnectionFactory.createLocalMediaStream("102")
-//        stream.addTrack(localAudioTrack)
-//        if (localPeer != null) {
-//            localPeer.addStream(stream)
-//        } else {
-//            Log.d("golly", "localpeer seems to be still null")
-//        }
-//    }
+    private fun addStreamToLocalPeer() {
+        //creating local mediastream
+        val stream = peerConnectionFactory.createLocalMediaStream("102")
+        stream.addTrack(localAudioTrack)
+        if (localPeer != null) {
+            localPeer.addStream(stream)
+        } else {
+            Log.d("golly", "localpeer seems to be still null")
+        }
+    }
 //
 //    /**
 //     * This method is called when the app is initiator - We generate the offer and send it over through socket
@@ -224,128 +201,128 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * Received local ice candidate. Send it to remote peer through signalling for negotiation
 //     */
-//    fun onIceCandidateReceived(iceCandidate: IceCandidate) {
-//        //we have received ice candidate. We can set it to the other peer.
-//        // SignallingClientKotlin.emitIceCandidate(iceCandidate)
-//        var userWebRTCRef = ref.getReference("$userId/webrtc")
-//        val childUpdates = HashMap<String, Any?>()
-//        iceCandidate.apply {
-//            childUpdates["ice/sdp"] = sdp
-//            childUpdates["ice/sdpMLineIndex"] = sdpMLineIndex
-//            childUpdates["ice/sdpMid"] = sdpMid
-//            childUpdates["ice/serverUrl"] = serverUrl
-//        }
-//        userWebRTCRef.updateChildren(childUpdates)
-//
-//    }
-//
-//
-//    fun onRemoteHangUp(msg: String) {
-//        // showToast("Remote Peer hungup")
-//        runOnUiThread({ this.hangup() })
-//    }
+    fun onIceCandidateReceived(iceCandidate: IceCandidate) {
+        //we have received ice candidate. We can set it to the other peer.
+        // SignallingClientKotlin.emitIceCandidate(iceCandidate)
+        var userWebRTCRef = ref.getReference("$userId/webrtc")
+        val childUpdates = HashMap<String, Any?>()
+        iceCandidate.apply {
+            childUpdates["ice/sdp"] = sdp
+            childUpdates["ice/sdpMLineIndex"] = sdpMLineIndex
+            childUpdates["ice/sdpMid"] = sdpMid
+            childUpdates["ice/serverUrl"] = serverUrl
+        }
+        userWebRTCRef.updateChildren(childUpdates)
+
+    }
+
+
+    fun onRemoteHangUp(msg: String) {
+        // showToast("Remote Peer hungup")
+        runOnUiThread({ this.hangup() })
+    }
 //
 //    /**
 //     * SignallingCallback - Called when remote peer sends offer
 //     */
-//    fun onOfferReceived() {
-//        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // Get Post object and use the values to update the UI
-//                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
-//                localPeer!!.setRemoteDescription(
-//                    CustomSdpObserver("localSetRemote"),
-//                    SessionDescription(SessionDescription.Type.OFFER, sdp!!.description)
-//                )
-//                doAnswer()
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("", "loadPost:onCancelled", databaseError.toException())
-//                // ...
-//            }
-//        }
-//        )
-//    }
-//
-//    private fun doAnswer() {
-//        localPeer!!.createAnswer(
-//            object : SdpObserver {
-//                override fun onSetFailure(p0: String?) {
-//                    Log.d("create answer", "i failed in setting description")
-//                    return
-//                }
-//
-//                override fun onSetSuccess() {
-//                    Log.d("create answer", "i succeded in setting description")
-//                    return
-//                }
-//
-//                override fun onCreateSuccess(p0: SessionDescription?) {
-//                    Log.d("create answer", "i succeded in creating description")
-//                    localPeer!!.setLocalDescription(CustomSdpObserver("localSetLocal"), p0)
-//                    // SignallingClientKotlin.emitMessage(sessionDescription)
-//                    var userWebRTCRef = ref.getReference("$userId/webrtc")
-//                    userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
-//                    userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
-//                    userWebRTCRef.child("call")
-//                        .child("$otherUser")
-//                        .child("oncall")
-//                        .setValue(true)
-//                    return
-//                }
-//
-//                override fun onCreateFailure(p0: String?) {
-//                    Log.d("create answer", "i failed in creating description")
-//                    return
-//                }
-//            }, MediaConstraints()
-//        )
-//    }
+    fun onOfferReceived() {
+        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // Get Post object and use the values to update the UI
+                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
+                localPeer!!.setRemoteDescription(
+                    CustomSdpObserver("localSetRemote"),
+                    SessionDescription(SessionDescription.Type.OFFER, sdp!!.description)
+                )
+                doAnswer()
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.w("", "loadPost:onCancelled", databaseError.toException())
+                // ...
+            }
+        }
+        )
+    }
+
+    private fun doAnswer() {
+        localPeer!!.createAnswer(
+            object : SdpObserver {
+                override fun onSetFailure(p0: String?) {
+                    Log.d("create answer", "i failed in setting description")
+                    return
+                }
+
+                override fun onSetSuccess() {
+                    Log.d("create answer", "i succeded in setting description")
+                    return
+                }
+
+                override fun onCreateSuccess(p0: SessionDescription?) {
+                    Log.d("create answer", "i succeded in creating description")
+                    localPeer!!.setLocalDescription(CustomSdpObserver("localSetLocal"), p0)
+                    // SignallingClientKotlin.emitMessage(sessionDescription)
+                    var userWebRTCRef = ref.getReference("$userId/webrtc")
+                    userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
+                    userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
+                    userWebRTCRef.child("call")
+                        .child("$otherUser")
+                        .child("oncall")
+                        .setValue(true)
+                    return
+                }
+
+                override fun onCreateFailure(p0: String?) {
+                    Log.d("create answer", "i failed in creating description")
+                    return
+                }
+            }, MediaConstraints()
+        )
+    }
 //
 //    /**
 //     * SignallingCallback - Called when remote peer sends answer to your offer
 //     */
 //
-//    fun onAnswerReceived() {
-//
-//        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // Get Post object and use the values to update the UI
-//                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
-//                localPeer!!.setRemoteDescription(
-//                    CustomSdpObserver("localSetRemote"),
-//                    SessionDescription(
-//                        SessionDescription.Type.fromCanonicalForm(sdp!!.type.toString().toLowerCase()),
-//                        sdp!!.description
-//                    )
-//                )
-//
-//                ref.getReference("$userId/webrtc/ice").addValueEventListener(object : ValueEventListener {
-//                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                        // Get Post object and use the values to update the UI
-//                        val ice = dataSnapshot.getValue(IceCandidate::class.java)
-//                        localPeer!!.addIceCandidate(ice)
-//                        doAnswer()
-//                    }
-//
-//                    override fun onCancelled(databaseError: DatabaseError) {
-//                        // Getting Post failed, log a message
-//                        Log.w("", "loadPost:onCancelled", databaseError.toException())
-//                        // ...
-//                    }
-//                })
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("", "loadPost:onCancelled", databaseError.toException())
-//                // ...
-//            }
-//        })
-//
-//    }
+    fun onAnswerReceived() {
+
+        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // Get Post object and use the values to update the UI
+                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
+                localPeer!!.setRemoteDescription(
+                    CustomSdpObserver("localSetRemote"),
+                    SessionDescription(
+                        SessionDescription.Type.fromCanonicalForm(sdp!!.type.toString().toLowerCase()),
+                        sdp!!.description
+                    )
+                )
+
+                ref.getReference("$userId/webrtc/ice").addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        // Get Post object and use the values to update the UI
+                        val ice = dataSnapshot.getValue(IceCandidate::class.java)
+                        localPeer!!.addIceCandidate(ice)
+                        doAnswer()
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Getting Post failed, log a message
+                        Log.w("", "loadPost:onCancelled", databaseError.toException())
+                        // ...
+                    }
+                })
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.w("", "loadPost:onCancelled", databaseError.toException())
+                // ...
+            }
+        })
+
+    }
 //
 ////    /**
 ////     * Remote IceCandidate received
@@ -394,46 +371,46 @@ class AudioCallActivity : AppCompatActivity() {
 //     */
 //
 //
-//    private fun hangup() {
-//        try {
-//            localPeer!!.close()
-//            //turn off on firebase
-//            // SignallingClientKotlin.close()
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-//
-//    }
-//
-//    override fun onDestroy() {
-//        // SignallingClientKotlin.close()
-//        //send something to firebase
-//        super.onDestroy()
-//    }
-//
-//    open class CustomSdpObserver(var theObserver: String) : SdpObserver {
-//        override open fun onSetFailure(p0: String?) {
-//            Log.d("$theObserver", "i failed in setting description")
-//            return
-//        }
-//
-//        override open fun onSetSuccess() {
-//            Log.d("$theObserver", "i succeded in setting description")
-//            return
-//        }
-//
-//        override open fun onCreateSuccess(p0: SessionDescription?) {
-//            Log.d("$theObserver", "i succeded in creating description")
-//            return
-//        }
-//
-//        override open fun onCreateFailure(p0: String?) {
-//            Log.d("$theObserver", "i failed in creating description")
-//            return
-//        }
-//    }
-//
-//
+    private fun hangup() {
+        try {
+            localPeer!!.close()
+            //turn off on firebase
+            // SignallingClientKotlin.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+    }
+
+    override fun onDestroy() {
+        // SignallingClientKotlin.close()
+        //send something to firebase
+        super.onDestroy()
+    }
+
+    open class CustomSdpObserver(var theObserver: String) : SdpObserver {
+        override open fun onSetFailure(p0: String?) {
+            Log.d("$theObserver", "i failed in setting description")
+            return
+        }
+
+        override open fun onSetSuccess() {
+            Log.d("$theObserver", "i succeded in setting description")
+            return
+        }
+
+        override open fun onCreateSuccess(p0: SessionDescription?) {
+            Log.d("$theObserver", "i succeded in creating description")
+            return
+        }
+
+        override open fun onCreateFailure(p0: String?) {
+            Log.d("$theObserver", "i failed in creating description")
+            return
+        }
+    }
+
+
     private inner class PCObserver : PeerConnection.Observer {
         override fun onIceCandidate(candidate: IceCandidate) {
             executor.execute{

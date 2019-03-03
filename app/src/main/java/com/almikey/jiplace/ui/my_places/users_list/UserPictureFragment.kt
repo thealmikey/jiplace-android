@@ -1,6 +1,5 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.users_list
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
