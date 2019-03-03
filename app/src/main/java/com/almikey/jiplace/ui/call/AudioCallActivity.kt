@@ -11,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import kotlinx.android.synthetic.main.activity_audio_call.*
+import org.webrtc.*
+import java.nio.charset.Charset
 import java.util.HashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -30,52 +32,54 @@ class AudioCallActivity : AppCompatActivity() {
     lateinit var otherUser: String
 
 
-//    private val peerConnectionFactory: PeerConnectionFactory by lazy {
-//        //Initialize PeerConnectionFactory globals.
-//        val initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this)
-//            .createInitializationOptions()
-//        PeerConnectionFactory.initialize(initializationOptions)
-////        val audioDeviceModule = LegacyAudioDeviceModule()
-////        val audioEncoderFactoryFactory = BuiltinAudioEncoderFactoryFactory()
-////        var audioDecoderFactoryFactory = BuiltinAudioDecoderFactoryFactory()
-//        PeerConnectionFactory.printStackTraces()
-//        val options = PeerConnectionFactory.Options()
-//        PeerConnectionFactory(options,null,null)
-//    }
-//
-////    "stun:stun.l.google.com:19302",
-////    "stun:stun1.l.google.com:19302",
-////    "stun:stun3.l.google.com:19302"
-//
-//    var serverList =
-//        arrayListOf<String>(
-//            "stun:stun2.l.google.com:19302"
-//        )
-//
-//    fun getIceServers(servers: ArrayList<String>): ArrayList<PeerConnection.IceServer> {
-//        var iceServers: ArrayList<PeerConnection.IceServer> = ArrayList()
-//        for (theUrl in servers) {
-//            iceServers.add(PeerConnection.IceServer.builder(theUrl).createIceServer())
-//
-//        }
-//        return iceServers
-//    }
-//
-//
-//    private var sdpConstraints: MediaConstraints? = null
-//    private var localAudioTrack: AudioTrack? = null
-//    lateinit var localPeer: PeerConnection
-//
-//    private var gotUserMedia: Boolean = false
-//    private var peerIceServers: MutableList<PeerConnection.IceServer> = getIceServers(serverList)
+    private val peerConnectionFactory: PeerConnectionFactory by lazy {
+        //Initialize PeerConnectionFactory globals.
+        val initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this)
+            .createInitializationOptions()
+        PeerConnectionFactory.initialize(initializationOptions)
+//        val audioDeviceModule = LegacyAudioDeviceModule()
+//        val audioEncoderFactoryFactory = BuiltinAudioEncoderFactoryFactory()
+//        var audioDecoderFactoryFactory = BuiltinAudioDecoderFactoryFactory()
+        PeerConnectionFactory.printStackTraces()
+        val options = PeerConnectionFactory.Options()
+        var peerConnectionFactoryBuilder =PeerConnectionFactory.builder()
+            .setOptions(options)
+        PeerConnectionFactory.
+    }
+
+//    "stun:stun.l.google.com:19302",
+//    "stun:stun1.l.google.com:19302",
+//    "stun:stun3.l.google.com:19302"
+
+    var serverList =
+        arrayListOf<String>(
+            "stun:142.93.197.248:3478"
+        )
+
+    fun getIceServers(servers: ArrayList<String>): ArrayList<PeerConnection.IceServer> {
+        var iceServers: ArrayList<PeerConnection.IceServer> = ArrayList()
+        for (theUrl in servers) {
+            iceServers.add(PeerConnection.IceServer.builder(theUrl).createIceServer())
+
+        }
+        return iceServers
+    }
+
+
+    private var sdpConstraints: MediaConstraints? = null
+    private var localAudioTrack: AudioTrack? = null
+    lateinit var localPeer: PeerConnection
+
+    private var gotUserMedia: Boolean = false
+    private var peerIceServers: MutableList<PeerConnection.IceServer> = getIceServers(serverList)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_call)
-        //start()
+        start()
        // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
         runOnUiThread {
-//            createPeerConnection()
+            createPeerConnection()
 
         val b = this.intent.extras
         otherUser = b!!.getString("other_user_to_call")
@@ -91,12 +95,12 @@ class AudioCallActivity : AppCompatActivity() {
     }
 
 //
-//    private fun start() {
-//        val audioConstraints = MediaConstraints()
-//        val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
-//        localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
-//        gotUserMedia = true
-//    }
+    private fun start() {
+        val audioConstraints = MediaConstraints()
+        val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
+        localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
+        gotUserMedia = true
+    }
 ////
 ////
 ////    /**
@@ -120,22 +124,22 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * Creating the local peerconnection instance
 //     */
-//    private fun createPeerConnection(): PeerConnection? {
-//        val rtcConfig = PeerConnection.RTCConfiguration(peerIceServers)
-//        rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
-//
-//        rtcConfig.bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
-//        rtcConfig.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-//        rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-//        // Use ECDSA encryption.
-//        rtcConfig.keyType = PeerConnection.KeyType.ECDSA
-////        peerConnectionFactory.printInternalStackTraces(true)
-//        return peerConnectionFactory
-//            .createPeerConnection(
-//            rtcConfig,MediaConstraints(),PCObserver())
-//
-//
-//    }
+    private fun createPeerConnection(): PeerConnection? {
+        val rtcConfig = PeerConnection.RTCConfiguration(peerIceServers)
+        rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
+
+        rtcConfig.bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
+        rtcConfig.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
+        rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
+        // Use ECDSA encryption.
+        rtcConfig.keyType = PeerConnection.KeyType.ECDSA
+//        peerConnectionFactory.printInternalStackTraces(true)
+        return peerConnectionFactory
+            .createPeerConnection(
+            rtcConfig,MediaConstraints(),PCObserver())
+
+
+    }
 //
 //    /**
 //     * Adding the stream to the localpeer
@@ -430,108 +434,108 @@ class AudioCallActivity : AppCompatActivity() {
 //    }
 //
 //
-//    private inner class PCObserver : PeerConnection.Observer {
-//        override fun onIceCandidate(candidate: IceCandidate) {
-//            executor.execute{
-//                var userWebRTCRef = ref.getReference("$userId/webrtc")
-//                val childUpdates = HashMap<String, Any?>()
-//                candidate.apply {
-//                    childUpdates["ice/sdp"] = sdp
-//                    childUpdates["ice/sdpMLineIndex"] = sdpMLineIndex
-//                    childUpdates["ice/sdpMid"] = sdpMid
-//                    childUpdates["ice/serverUrl"] = serverUrl
-//                }
-//                userWebRTCRef.updateChildren(childUpdates)
-//            }
-//            }
-//
-//
-//        override fun onIceCandidatesRemoved(candidates: Array<IceCandidate>) {
-//            Log.d("ice","ice candidates removed")
-//        }
-//
-//        override fun onSignalingChange(newState: PeerConnection.SignalingState) {
-//            Log.d("FragmentActivity.TAG", "SignalingState: $newState")
-//        }
-//
-//        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {
-//            executor.execute{
-//                Log.d("FragmentActivity.TAG", "IceConnectionState: $newState")
-//                if (newState == IceConnectionState.CONNECTED) {
-//                   Log.d("wut", "events.onIceConnected()")
-//                } else if (newState == IceConnectionState.DISCONNECTED) {
-//                   Log.d("wut","events.onIceDisconnected()")
-//                } else if (newState == IceConnectionState.FAILED) {
-//                   Log.d("reportError(" ,"ICE connection failed.")
-//                }
-//            }
-//        }
-////
-////        override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
-////            executor.execute{
-////                Log.d("FragmentActivity.TAG", "PeerConnectionState: " + newState!!)
-////                if (newState == PeerConnectionState.CONNECTED) {
-////                   Log.d("wut"," events.onConnected()")
-////
-////                } else if (newState == PeerConnectionState.DISCONNECTED) {
-////                    Log.d("wut","     events.onDisconnected()")
-////                } else if (newState == PeerConnectionState.FAILED) {
-////                    Log.d("wut"," reportError(DTLS connection failed.")
-////                }
-////            }
-////        }
-//
-//        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState) {
-//            Log.d("FragmentActivity.TAG", "IceGatheringState: $newState")
-//        }
-//
-//        override fun onIceConnectionReceivingChange(receiving: Boolean) {
-//            Log.d("FragmentActivity.TAG", "IceConnectionReceiving changed to $receiving")
-//        }
-//
-//        override fun onAddStream(stream: MediaStream) {}
-//
-//        override fun onRemoveStream(stream: MediaStream) {}
-//
-//        override fun onDataChannel(dc: DataChannel) {
-//            Log.d("FragmentActivity.TAG", "New Data channel " + dc.label())
-//
-////            if (!dataChannelEnabled)
-////                return
-//
-//            dc.registerObserver(object : DataChannel.Observer {
-//                override fun onBufferedAmountChange(previousAmount: Long) {
-//                    Log.d(
-//                        "FragmentActivity.TAG",
-//                        "Data channel buffered amount changed: " + dc.label() + ": " + dc.state()
-//                    )
-//                }
-//
-//                override fun onStateChange() {
-//                    Log.d("FragmentActivity.TAG", "Data channel state changed: " + dc.label() + ": " + dc.state())
-//                }
-//
-//                override fun onMessage(buffer: DataChannel.Buffer) {
-//                    if (buffer.binary) {
-//                        Log.d("FragmentActivity.TAG", "Received binary msg over $dc")
-//                        return
-//                    }
-//                    val data = buffer.data
-//                    val bytes = ByteArray(data.capacity())
-//                    data.get(bytes)
-//                    val strData = String(bytes, Charset.forName("UTF-8"))
-//                    Log.d("FragmentActivity.TAG", "Got msg: $strData over $dc")
-//                }
-//            })
-//        }
-//
-//        override fun onRenegotiationNeeded() {
-//            // No need to do anything; AppRTC follows a pre-agreed-upon
-//            // signaling/negotiation protocol.
-//        }
-//
-//        override fun onAddTrack(receiver: RtpReceiver, mediaStreams: Array<MediaStream>) {}
-//    }
+    private inner class PCObserver : PeerConnection.Observer {
+        override fun onIceCandidate(candidate: IceCandidate) {
+            executor.execute{
+                var userWebRTCRef = ref.getReference("$userId/webrtc")
+                val childUpdates = HashMap<String, Any?>()
+                candidate.apply {
+                    childUpdates["ice/sdp"] = sdp
+                    childUpdates["ice/sdpMLineIndex"] = sdpMLineIndex
+                    childUpdates["ice/sdpMid"] = sdpMid
+                    childUpdates["ice/serverUrl"] = serverUrl
+                }
+                userWebRTCRef.updateChildren(childUpdates)
+            }
+            }
+
+
+        override fun onIceCandidatesRemoved(candidates: Array<IceCandidate>) {
+            Log.d("ice","ice candidates removed")
+        }
+
+        override fun onSignalingChange(newState: PeerConnection.SignalingState) {
+            Log.d("FragmentActivity.TAG", "SignalingState: $newState")
+        }
+
+        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {
+            executor.execute{
+                Log.d("FragmentActivity.TAG", "IceConnectionState: $newState")
+                if (newState == PeerConnection.IceConnectionState.CONNECTED) {
+                   Log.d("wut", "events.onIceConnected()")
+                } else if (newState == PeerConnection.IceConnectionState.DISCONNECTED) {
+                   Log.d("wut","events.onIceDisconnected()")
+                } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+                   Log.d("reportError(" ,"ICE connection failed.")
+                }
+            }
+        }
+
+        override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
+            executor.execute{
+                Log.d("FragmentActivity.TAG", "PeerConnectionState: " + newState!!)
+                if (newState == PeerConnection.PeerConnectionState.CONNECTED) {
+                   Log.d("wut"," events.onConnected()")
+
+                } else if (newState == PeerConnection.PeerConnectionState.DISCONNECTED) {
+                    Log.d("wut","     events.onDisconnected()")
+                } else if (newState == PeerConnection.PeerConnectionState.FAILED) {
+                    Log.d("wut"," reportError(DTLS connection failed.")
+                }
+            }
+        }
+
+        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState) {
+            Log.d("FragmentActivity.TAG", "IceGatheringState: $newState")
+        }
+
+        override fun onIceConnectionReceivingChange(receiving: Boolean) {
+            Log.d("FragmentActivity.TAG", "IceConnectionReceiving changed to $receiving")
+        }
+
+        override fun onAddStream(stream: MediaStream) {}
+
+        override fun onRemoveStream(stream: MediaStream) {}
+
+        override fun onDataChannel(dc: DataChannel) {
+            Log.d("FragmentActivity.TAG", "New Data channel " + dc.label())
+
+//            if (!dataChannelEnabled)
+//                return
+
+            dc.registerObserver(object : DataChannel.Observer {
+                override fun onBufferedAmountChange(previousAmount: Long) {
+                    Log.d(
+                        "FragmentActivity.TAG",
+                        "Data channel buffered amount changed: " + dc.label() + ": " + dc.state()
+                    )
+                }
+
+                override fun onStateChange() {
+                    Log.d("FragmentActivity.TAG", "Data channel state changed: " + dc.label() + ": " + dc.state())
+                }
+
+                override fun onMessage(buffer: DataChannel.Buffer) {
+                    if (buffer.binary) {
+                        Log.d("FragmentActivity.TAG", "Received binary msg over $dc")
+                        return
+                    }
+                    val data = buffer.data
+                    val bytes = ByteArray(data.capacity())
+                    data.get(bytes)
+                    val strData = String(bytes, Charset.forName("UTF-8"))
+                    Log.d("FragmentActivity.TAG", "Got msg: $strData over $dc")
+                }
+            })
+        }
+
+        override fun onRenegotiationNeeded() {
+            // No need to do anything; AppRTC follows a pre-agreed-upon
+            // signaling/negotiation protocol.
+        }
+
+        override fun onAddTrack(receiver: RtpReceiver, mediaStreams: Array<MediaStream>) {}
+    }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase))

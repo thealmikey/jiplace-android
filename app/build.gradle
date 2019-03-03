@@ -242,7 +242,7 @@ dependencies {
     //   implementation "com.google.guava:guava:23.5-android"
 
     implementation 'com.squareup.picasso:picasso:2.71828'
-////    implementation 'org.webrtc:google-webrtc:1.0.20284'
+    implementation 'org.webrtc:google-webrtc:1.0.26885'
 //    implementation ("android.arch.work:work-runtime:$work_version") {
 //        exclude group: 'com.google.guava', module: 'listenablefuture'
 //    }
