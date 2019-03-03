@@ -97,6 +97,7 @@ class AudioCallActivity : AppCompatActivity() {
     //
     private fun start() {
         val audioConstraints = MediaConstraints()
+        val sdpConstraints = MediaConstraints()
         val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
         gotUserMedia = true
@@ -115,7 +116,7 @@ class AudioCallActivity : AppCompatActivity() {
         Log.d("peer connection","got here")
         return peerConnectionFactory
             .createPeerConnection(
-                rtcConfig, MediaConstraints(), PCObserver()
+                rtcConfig, PCObserver()
             )
 
 
