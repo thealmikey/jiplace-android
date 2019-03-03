@@ -19,7 +19,7 @@ import java.util.concurrent.Executors
 
 class AudioCallActivity : AppCompatActivity() {
 
-     val  executor: ExecutorService = Executors.newSingleThreadExecutor();
+    val executor: ExecutorService = Executors.newSingleThreadExecutor();
 
     val ref: FirebaseDatabase by lazy {
         FirebaseDatabase.getInstance()
@@ -31,20 +31,21 @@ class AudioCallActivity : AppCompatActivity() {
 
     lateinit var otherUser: String
 
+    val peerConnectionFactory by lazy {
         //Initialize PeerConnectionFactory globals.
         val initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this)
             .createInitializationOptions()
         var po = PeerConnectionFactory.initialize(initializationOptions)
 
-       var pps =  PeerConnectionFactory.printStackTraces()
+        var pps = PeerConnectionFactory.printStackTraces()
         val options = PeerConnectionFactory.Options()
-        var peerConnectionFactoryBuilder =PeerConnectionFactory.builder()
+        var peerConnectionFactoryBuilder = PeerConnectionFactory.builder()
             .setOptions(options)
-        private val peerConnectionFactory: PeerConnectionFactory =PeerConnectionFactory.builder()
+        PeerConnectionFactory.builder()
             .setOptions(options)
             .createPeerConnectionFactory();
 
-
+    }
 //    "stun:stun.l.google.com:19302",
 //    "stun:stun1.l.google.com:19302",
 //    "stun:stun3.l.google.com:19302"
@@ -76,16 +77,16 @@ class AudioCallActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_call)
         start()
-       // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
+        // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
         runOnUiThread {
             createPeerConnection()
 
-        val b = this.intent.extras
-        otherUser = b!!.getString("other_user_to_call")
-        addStreamToLocalPeer()
-        if (!otherUser.isEmpty() && otherUser != null) {
-            onOfferReceived()
-        }
+            val b = this.intent.extras
+            otherUser = b!!.getString("other_user_to_call")
+            addStreamToLocalPeer()
+            if (!otherUser.isEmpty() && otherUser != null) {
+                onOfferReceived()
+            }
         }
         audio_call_button.setOnClickListener {
             //doCall()
@@ -93,7 +94,7 @@ class AudioCallActivity : AppCompatActivity() {
 
     }
 
-//
+    //
     private fun start() {
         val audioConstraints = MediaConstraints()
         val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
@@ -113,11 +114,13 @@ class AudioCallActivity : AppCompatActivity() {
 //        peerConnectionFactory.printInternalStackTraces(true)
         return peerConnectionFactory
             .createPeerConnection(
-            rtcConfig, MediaConstraints(),PCObserver())
+                rtcConfig, MediaConstraints(), PCObserver()
+            )
 
 
     }
-//
+
+    //
 //    /**
 //     * Adding the stream to the localpeer
 //     */
@@ -131,7 +134,8 @@ class AudioCallActivity : AppCompatActivity() {
             Log.d("golly", "localpeer seems to be still null")
         }
     }
-//
+
+    //
 //    /**
 //     * This method is called when the app is initiator - We generate the offer and send it over through socket
 //     * to remote peer
@@ -221,7 +225,8 @@ class AudioCallActivity : AppCompatActivity() {
         // showToast("Remote Peer hungup")
         runOnUiThread({ this.hangup() })
     }
-//
+
+    //
 //    /**
 //     * SignallingCallback - Called when remote peer sends offer
 //     */
@@ -280,7 +285,8 @@ class AudioCallActivity : AppCompatActivity() {
             }, MediaConstraints()
         )
     }
-//
+
+    //
 //    /**
 //     * SignallingCallback - Called when remote peer sends answer to your offer
 //     */
@@ -323,7 +329,8 @@ class AudioCallActivity : AppCompatActivity() {
         })
 
     }
-//
+
+    //
 ////    /**
 ////     * Remote IceCandidate received
 ////     */
@@ -413,7 +420,7 @@ class AudioCallActivity : AppCompatActivity() {
 
     private inner class PCObserver : PeerConnection.Observer {
         override fun onIceCandidate(candidate: IceCandidate) {
-            executor.execute{
+            executor.execute {
                 var userWebRTCRef = ref.getReference("$userId/webrtc")
                 val childUpdates = HashMap<String, Any?>()
                 candidate.apply {
@@ -424,11 +431,11 @@ class AudioCallActivity : AppCompatActivity() {
                 }
                 userWebRTCRef.updateChildren(childUpdates)
             }
-            }
+        }
 
 
         override fun onIceCandidatesRemoved(candidates: Array<IceCandidate>) {
-            Log.d("ice","ice candidates removed")
+            Log.d("ice", "ice candidates removed")
         }
 
         override fun onSignalingChange(newState: PeerConnection.SignalingState) {
@@ -436,28 +443,28 @@ class AudioCallActivity : AppCompatActivity() {
         }
 
         override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {
-            executor.execute{
+            executor.execute {
                 Log.d("FragmentActivity.TAG", "IceConnectionState: $newState")
                 if (newState == PeerConnection.IceConnectionState.CONNECTED) {
-                   Log.d("wut", "events.onIceConnected()")
+                    Log.d("wut", "events.onIceConnected()")
                 } else if (newState == PeerConnection.IceConnectionState.DISCONNECTED) {
-                   Log.d("wut","events.onIceDisconnected()")
+                    Log.d("wut", "events.onIceDisconnected()")
                 } else if (newState == PeerConnection.IceConnectionState.FAILED) {
-                   Log.d("reportError(" ,"ICE connection failed.")
+                    Log.d("reportError(", "ICE connection failed.")
                 }
             }
         }
 
         override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
-            executor.execute{
+            executor.execute {
                 Log.d("FragmentActivity.TAG", "PeerConnectionState: " + newState!!)
                 if (newState == PeerConnection.PeerConnectionState.CONNECTED) {
-                   Log.d("wut"," events.onConnected()")
+                    Log.d("wut", " events.onConnected()")
 
                 } else if (newState == PeerConnection.PeerConnectionState.DISCONNECTED) {
-                    Log.d("wut","     events.onDisconnected()")
+                    Log.d("wut", "     events.onDisconnected()")
                 } else if (newState == PeerConnection.PeerConnectionState.FAILED) {
-                    Log.d("wut"," reportError(DTLS connection failed.")
+                    Log.d("wut", " reportError(DTLS connection failed.")
                 }
             }
         }
