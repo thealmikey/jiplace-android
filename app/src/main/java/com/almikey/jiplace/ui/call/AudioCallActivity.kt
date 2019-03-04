@@ -229,7 +229,7 @@ class AudioCallActivity : AppCompatActivity() {
     private fun gotRemoteStream(stream: MediaStream) {
         //we have remote video stream. add to the renderer.
         val audioTrack = stream.audioTracks[0]
-        localPeer
+//        localPeer.add
     }
 
     //
@@ -266,10 +266,14 @@ class AudioCallActivity : AppCompatActivity() {
         ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
-                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
+                val type = dataSnapshot.child("type").value as String
+                val description = dataSnapshot.child("description").value as String
+
+                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
+
                 localPeer!!.setRemoteDescription(
                     CustomSdpObserver("localSetRemote"),
-                    SessionDescription(SessionDescription.Type.OFFER, sdp!!.description)
+                    SessionDescription(SessionDescription.Type.OFFER, description)
                 )
             }
 
@@ -326,22 +330,34 @@ class AudioCallActivity : AppCompatActivity() {
 //     */
 //
     fun onAnswerReceived() {
-        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+        ref.getReference("myplaceusers/$otherUser/webrtc/sdp")
+            .addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
-                val sdp = dataSnapshot.getValue(SessionDescription::class.java)
+                val type = dataSnapshot.child("type").value as String
+                val description = dataSnapshot.child("sdp").value as String
+
+                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
+
                 localPeer!!.setRemoteDescription(
                     CustomSdpObserver("localSetRemote"),
                     SessionDescription(
-                        SessionDescription.Type.fromCanonicalForm(sdp!!.type.toString().toLowerCase()),
-                        sdp!!.description
+                        SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
+                        description
                     )
                 )
                 ref.getReference("myplaceusers/$otherUser/webrtc/ice")
                     .addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             // Get Post object and use the values to update the UI
-                            val ice = dataSnapshot.getValue(IceCandidate::class.java)
+
+                            val sdp = dataSnapshot.child("sdp").value as String
+                            val sdpMLineIndex = dataSnapshot.child("sdpMLineIndex").value as Int
+                            val sdpMid = dataSnapshot.child("sdpMid").value as String
+                            val serverUrl = dataSnapshot.child("serverUrl").value as String
+
+                           val ice = IceCandidate(sdpMid,sdpMLineIndex,sdp)
+
                             localPeer!!.addIceCandidate(ice)
                             doAnswer()
                         }
