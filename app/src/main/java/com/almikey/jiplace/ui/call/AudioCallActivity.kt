@@ -95,11 +95,11 @@ class AudioCallActivity : AppCompatActivity() {
                     doCall()
                 }
             } else {
-                onOfferReceived()
+                doAnswer()
                 Log.d("webrtc call", "couldn't get user media")
             }
         }
-        startCallNotification()
+//        startCallNotification()
         audio_call_button.setOnClickListener {
             //doCall()
         }
@@ -189,6 +189,7 @@ class AudioCallActivity : AppCompatActivity() {
                             .setValue(true).addOnSuccessListener {
                                 Log.d("webrtc call", "on create put data to firebase")
                             }
+                        onAnswerReceived()
                         return
                     }
 
@@ -228,6 +229,7 @@ class AudioCallActivity : AppCompatActivity() {
     private fun gotRemoteStream(stream: MediaStream) {
         //we have remote video stream. add to the renderer.
         val audioTrack = stream.audioTracks[0]
+        localPeer
     }
 
     //
@@ -238,7 +240,7 @@ class AudioCallActivity : AppCompatActivity() {
     fun onIceCandidateReceived(iceCandidate: IceCandidate) {
         //we have received ice candidate. We can set it to the other peer.
         // SignallingClientKotlin.emitIceCandidate(iceCandidate)
-        var userWebRTCRef = ref.getReference("$userId/webrtc")
+        var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
         val childUpdates = HashMap<String, Any?>()
         iceCandidate.apply {
             childUpdates["ice/sdp"] = sdp
@@ -261,7 +263,7 @@ class AudioCallActivity : AppCompatActivity() {
 //     * SignallingCallback - Called when remote peer sends offer
 //     */
     fun onOfferReceived() {
-        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
                 val sdp = dataSnapshot.getValue(SessionDescription::class.java)
@@ -269,7 +271,6 @@ class AudioCallActivity : AppCompatActivity() {
                     CustomSdpObserver("localSetRemote"),
                     SessionDescription(SessionDescription.Type.OFFER, sdp!!.description)
                 )
-                doAnswer()
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -304,7 +305,9 @@ class AudioCallActivity : AppCompatActivity() {
                     userWebRTCRef.child("call")
                         .child("$otherUser")
                         .child("oncall")
-                        .setValue(true)
+                        .setValue(true).addOnSuccessListener {
+                            onOfferReceived()
+                        }
                     return
                 }
 
@@ -317,12 +320,12 @@ class AudioCallActivity : AppCompatActivity() {
     }
 
     //
+    //s
 //    /**
 //     * SignallingCallback - Called when remote peer sends answer to your offer
 //     */
 //
     fun onAnswerReceived() {
-
         ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
@@ -334,7 +337,6 @@ class AudioCallActivity : AppCompatActivity() {
                         sdp!!.description
                     )
                 )
-
                 ref.getReference("myplaceusers/$otherUser/webrtc/ice")
                     .addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -358,57 +360,8 @@ class AudioCallActivity : AppCompatActivity() {
                 // ...
             }
         })
-
     }
 
-    //
-////    /**
-////     * Remote IceCandidate received
-////     */
-////    fun onIceCandidateReceived(data: JSONObject) {
-////
-////        ref.getReference("$userId/webrtc/ice").addValueEventListener(object : ValueEventListener {
-////            override fun onDataChange(dataSnapshot: DataSnapshot) {
-////                // Get Post object and use the values to update the UI
-////                val ice = dataSnapshot.getValue(IceCandidate::class.java)
-////                localPeer!!.addIceCandidate(ice)
-////                doAnswer()
-////            }
-////
-////            override fun onCancelled(databaseError: DatabaseError) {
-////                // Getting Post failed, log a message
-////                Log.w("", "loadPost:onCancelled", databaseError.toException())
-////                // ...
-////            }
-////        })
-////
-////
-////
-////    }
-//
-////    private fun updateVideoViews(remoteVisible: Boolean) {
-////        runOnUiThread {
-////            var params = localVideoView?.layoutParams
-////            params?.let {
-////                if (remoteVisible) {
-////                    it.height = dpToPx(100)
-////                    it.width = dpToPx(100)
-////                } else {
-////                    params = FrameLayout.LayoutParams(
-////                        ViewGroup.LayoutParams.MATCH_PARENT,
-////                        ViewGroup.LayoutParams.MATCH_PARENT
-////                    )
-////                }
-////                localVideoView?.layoutParams = params
-////            }
-////        }
-////    }
-//
-//    /**
-//     * Closing up - normal hangup and app destroye
-//     */
-//
-//
     private fun hangup() {
         try {
             localPeer!!.close()
@@ -508,7 +461,9 @@ class AudioCallActivity : AppCompatActivity() {
             Log.d("FragmentActivity.TAG", "IceConnectionReceiving changed to $receiving")
         }
 
-        override fun onAddStream(stream: MediaStream) {}
+        override fun onAddStream(stream: MediaStream) {
+            gotRemoteStream(stream)
+        }
 
         override fun onRemoveStream(stream: MediaStream) {}
 
@@ -573,4 +528,5 @@ class AudioCallActivity : AppCompatActivity() {
         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.cancel()
     }
+
 }
