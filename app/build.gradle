@@ -97,10 +97,10 @@ android {
     }
     signingConfigs {
         release {
-            keyAlias project["keyAlias"]
-            keyPassword project["keyPass"]
-            storeFile project["storeFile"]
-            storePassword project["storePass"]
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
         }
     }
 }
