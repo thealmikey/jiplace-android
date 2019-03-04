@@ -334,12 +334,11 @@ class AudioCallActivity : AppCompatActivity() {
             .addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
-
+                if(dataSnapshot.child("type").value != null){
                 val type = dataSnapshot.child("type").value as String
                 val description = dataSnapshot.child("description").value as String
 
                 SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-                if(!type.isEmpty() && type != null){
                 localPeer!!.setRemoteDescription(
                     CustomSdpObserver("localSetRemote"),
                     SessionDescription(
@@ -352,7 +351,7 @@ class AudioCallActivity : AppCompatActivity() {
                     .addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             // Get Post object and use the values to update the UI
-
+                            if(dataSnapshot.child("sdp").value != null){
                             val sdp = dataSnapshot.child("sdp").value as String
                             val sdpMLineIndexLong = dataSnapshot.child("sdpMLineIndex").value as Long
                             val sdpMLineIndex = sdpMLineIndexLong.toInt()
@@ -360,7 +359,7 @@ class AudioCallActivity : AppCompatActivity() {
                             val serverUrl = dataSnapshot.child("serverUrl").value as String
 
                            val ice = IceCandidate(sdpMid,sdpMLineIndex,sdp)
-                            if(!sdp.isEmpty() && sdp != null){
+
                             localPeer!!.addIceCandidate(ice)
                             }
                         }
