@@ -352,7 +352,8 @@ class AudioCallActivity : AppCompatActivity() {
                             // Get Post object and use the values to update the UI
 
                             val sdp = dataSnapshot.child("sdp").value as String
-                            val sdpMLineIndex = dataSnapshot.child("sdpMLineIndex").value as Int
+                            val sdpMLineIndexLong = dataSnapshot.child("sdpMLineIndex").value as Long
+                            val sdpMLineIndex = sdpMLineIndexLong.toInt()
                             val sdpMid = dataSnapshot.child("sdpMid").value as String
                             val serverUrl = dataSnapshot.child("serverUrl").value as String
 
