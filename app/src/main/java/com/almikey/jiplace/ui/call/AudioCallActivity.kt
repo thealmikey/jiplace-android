@@ -360,7 +360,6 @@ class AudioCallActivity : AppCompatActivity() {
                            val ice = IceCandidate(sdpMid,sdpMLineIndex,sdp)
 
                             localPeer!!.addIceCandidate(ice)
-                            doAnswer()
                         }
 
                         override fun onCancelled(databaseError: DatabaseError) {
