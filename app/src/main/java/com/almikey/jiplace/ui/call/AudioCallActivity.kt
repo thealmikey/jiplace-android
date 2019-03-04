@@ -335,7 +335,7 @@ class AudioCallActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
                 val type = dataSnapshot.child("type").value as String
-                val description = dataSnapshot.child("sdp").value as String
+                val description = dataSnapshot.child("description").value as String
 
                 SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
 
