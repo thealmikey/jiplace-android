@@ -58,34 +58,40 @@ class AudioCallActivity : AppCompatActivity() {
     fun getIceServers(servers: ArrayList<String>): ArrayList<PeerConnection.IceServer> {
         var iceServers: ArrayList<PeerConnection.IceServer> = ArrayList()
         for (theUrl in servers) {
+            Log.d("webrtc call","getting ice urls $theUrl")
             var iceServerBuilder = PeerConnection.IceServer.builder(theUrl)
             iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
             iceServers.add(iceServerBuilder.createIceServer())
         }
+        Log.d("webrtc call","iceserver are ${iceServers.size} in number")
+        Log.d("webrtc call","iceservers toString ${iceServers.toString()}")
         return iceServers
     }
 
 
-    private var sdpConstraints: MediaConstraints? = null
+    private var sdpConstraints: MediaConstraints = MediaConstraints()
     private var localAudioTrack: AudioTrack? = null
     lateinit var localPeer: PeerConnection
 
     private var gotUserMedia: Boolean = false
     private var peerIceServers: MutableList<PeerConnection.IceServer> = getIceServers(serverList)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_call)
         start()
         // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
         runOnUiThread {
+            if(gotUserMedia){
             localPeer = createPeerConnection()!!
             val b = this.intent.extras
             otherUser = b!!.getString("other_user_to_call")
-            addStreamToLocalPeer()
+            addStreamToLocalPeer(localPeer)
             if (!otherUser.isEmpty() && otherUser != null) {
 //                onOfferReceived()
                 doCall()
+            }
+        }else{
+                Log.d("webrtc call","couldn't get user media")
             }
         }
         audio_call_button.setOnClickListener {
@@ -96,25 +102,20 @@ class AudioCallActivity : AppCompatActivity() {
 
     //
     private fun start() {
-        val audioConstraints = MediaConstraints()
-        val sdpConstraints = MediaConstraints()
-        val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
-        val videoSource = peerConnectionFactory.createVideoSource(false)
+        val audioSource = peerConnectionFactory.createAudioSource(MediaConstraints())
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
         gotUserMedia = true
     }
 
     private fun createPeerConnection(): PeerConnection? {
-
         val rtcConfig = PeerConnection.RTCConfiguration(peerIceServers)
         rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
         rtcConfig.bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
         rtcConfig.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
         rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-        // Use ECDSA encryption.
         rtcConfig.keyType = PeerConnection.KeyType.ECDSA
         peerConnectionFactory.printInternalStackTraces(true)
-        Log.d("peer connection","got here")
+        Log.d("webrtc call","i got to the peercreation methode")
         return peerConnectionFactory
             .createPeerConnection(
                 rtcConfig, PCObserver()
@@ -127,14 +128,14 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * Adding the stream to the localpeer
 //     */
-    private fun addStreamToLocalPeer() {
+    private fun addStreamToLocalPeer(localPeer:PeerConnection) {
         //creating local mediastream
+        if (gotUserMedia) {
         val stream = peerConnectionFactory.createLocalMediaStream("102")
         stream.addTrack(localAudioTrack)
-        if (localPeer != null) {
-            localPeer.addStream(stream)
-        } else {
-            Log.d("golly", "localpeer seems to be still null")
+       localPeer.addStream(stream)
+        }else{
+            Log.d("webrtc call","Haven't got local media stream")
         }
     }
 
