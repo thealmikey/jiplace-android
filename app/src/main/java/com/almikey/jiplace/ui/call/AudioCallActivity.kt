@@ -276,7 +276,7 @@ class AudioCallActivity : AppCompatActivity() {
                     Log.d("create answer", "i succeded in creating description")
                     localPeer!!.setLocalDescription(CustomSdpObserver("localSetLocal"), p0)
                     // SignallingClientKotlin.emitMessage(sessionDescription)
-                    var userWebRTCRef = ref.getReference("$userId/webrtc")
+                    var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                     userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
                     userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
                     userWebRTCRef.child("call")
@@ -301,7 +301,7 @@ class AudioCallActivity : AppCompatActivity() {
 //
     fun onAnswerReceived() {
 
-        ref.getReference("$userId/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
                 val sdp = dataSnapshot.getValue(SessionDescription::class.java)
@@ -313,7 +313,7 @@ class AudioCallActivity : AppCompatActivity() {
                     )
                 )
 
-                ref.getReference("$userId/webrtc/ice").addValueEventListener(object : ValueEventListener {
+                ref.getReference("myplaceusers/$otherUser/webrtc/ice").addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         // Get Post object and use the values to update the UI
                         val ice = dataSnapshot.getValue(IceCandidate::class.java)
@@ -405,22 +405,22 @@ class AudioCallActivity : AppCompatActivity() {
 
     open class CustomSdpObserver(var theObserver: String) : SdpObserver {
         override open fun onSetFailure(p0: String?) {
-            Log.d("$theObserver", "i failed in setting description")
+            Log.d("webrtc call", "$theObserver i failed in setting description")
             return
         }
 
         override open fun onSetSuccess() {
-            Log.d("$theObserver", "i succeded in setting description")
+            Log.d("$theObserver", "$theObserver i succeded in setting description")
             return
         }
 
         override open fun onCreateSuccess(p0: SessionDescription?) {
-            Log.d("$theObserver", "i succeded in creating description")
+            Log.d("$theObserver", "$theObserver i succeded in creating description")
             return
         }
 
         override open fun onCreateFailure(p0: String?) {
-            Log.d("$theObserver", "i failed in creating description")
+            Log.d("$theObserver", "$theObserver i failed in creating description")
             return
         }
     }
@@ -429,7 +429,7 @@ class AudioCallActivity : AppCompatActivity() {
     private inner class PCObserver : PeerConnection.Observer {
         override fun onIceCandidate(candidate: IceCandidate) {
             executor.execute {
-                var userWebRTCRef = ref.getReference("$userId/webrtc")
+                var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                 val childUpdates = HashMap<String, Any?>()
                 candidate.apply {
                     childUpdates["ice/sdp"] = sdp
