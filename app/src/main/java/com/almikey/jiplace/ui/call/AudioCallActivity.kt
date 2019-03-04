@@ -1,8 +1,10 @@
 package com.almikey.jiplace.ui.call
 
 import android.content.Context
+import android.media.RingtoneManager
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.os.Vibrator
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +32,7 @@ class AudioCallActivity : AppCompatActivity() {
     }
 
     lateinit var otherUser: String
+    var callReceived = false
 
     val peerConnectionFactory by lazy {
         //Initialize PeerConnectionFactory globals.
@@ -58,13 +61,13 @@ class AudioCallActivity : AppCompatActivity() {
     fun getIceServers(servers: ArrayList<String>): ArrayList<PeerConnection.IceServer> {
         var iceServers: ArrayList<PeerConnection.IceServer> = ArrayList()
         for (theUrl in servers) {
-            Log.d("webrtc call","getting ice urls $theUrl")
+            Log.d("webrtc call", "getting ice urls $theUrl")
             var iceServerBuilder = PeerConnection.IceServer.builder(theUrl)
             iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
             iceServers.add(iceServerBuilder.createIceServer())
         }
-        Log.d("webrtc call","iceserver are ${iceServers.size} in number")
-        Log.d("webrtc call","iceservers toString ${iceServers.toString()}")
+        Log.d("webrtc call", "iceserver are ${iceServers.size} in number")
+        Log.d("webrtc call", "iceservers toString ${iceServers.toString()}")
         return iceServers
     }
 
@@ -81,23 +84,29 @@ class AudioCallActivity : AppCompatActivity() {
         start()
         // Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE)
         runOnUiThread {
-            if(gotUserMedia){
-            localPeer = createPeerConnection()!!
-            val b = this.intent.extras
-            otherUser = b!!.getString("other_user_to_call")
-            addStreamToLocalPeer(localPeer)
-            if (!otherUser.isEmpty() && otherUser != null) {
+            if (gotUserMedia) {
+                localPeer = createPeerConnection()!!
+                val b = this.intent.extras
+                otherUser = b!!.getString("other_user_to_call")
+                callReceived = b.getBoolean("received")
+                addStreamToLocalPeer(localPeer)
+                if (!otherUser.isEmpty() && otherUser != null && !callReceived) {
 //                onOfferReceived()
-                doCall()
-            }
-        }else{
-                Log.d("webrtc call","couldn't get user media")
+                    doCall()
+                }
+            } else {
+                onOfferReceived()
+                Log.d("webrtc call", "couldn't get user media")
             }
         }
+        startCallNotification()
         audio_call_button.setOnClickListener {
             //doCall()
         }
 
+        audio_answer_button.setOnClickListener {
+            stopCallNotification()
+        }
     }
 
     //
@@ -115,7 +124,7 @@ class AudioCallActivity : AppCompatActivity() {
         rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
         rtcConfig.keyType = PeerConnection.KeyType.ECDSA
         peerConnectionFactory.printInternalStackTraces(true)
-        Log.d("webrtc call","i got to the peercreation methode")
+        Log.d("webrtc call", "i got to the peercreation methode")
         return peerConnectionFactory
             .createPeerConnection(
                 rtcConfig, PCObserver()
@@ -128,14 +137,14 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * Adding the stream to the localpeer
 //     */
-    private fun addStreamToLocalPeer(localPeer:PeerConnection) {
+    private fun addStreamToLocalPeer(localPeer: PeerConnection) {
         //creating local mediastream
         if (gotUserMedia) {
-        val stream = peerConnectionFactory.createLocalMediaStream("102")
-        stream.addTrack(localAudioTrack)
-       localPeer.addStream(stream)
-        }else{
-            Log.d("webrtc call","Haven't got local media stream")
+            val stream = peerConnectionFactory.createLocalMediaStream("102")
+            stream.addTrack(localAudioTrack)
+            localPeer.addStream(stream)
+        } else {
+            Log.d("webrtc call", "Haven't got local media stream")
         }
     }
 
@@ -178,9 +187,9 @@ class AudioCallActivity : AppCompatActivity() {
                             .child("$otherUser")
                             .child("oncall")
                             .setValue(true).addOnSuccessListener {
-                                Log.d("webrtc call","on create put data to firebase")
+                                Log.d("webrtc call", "on create put data to firebase")
                             }
-                            return
+                        return
                     }
 
                     override fun onCreateSuccess(p0: SessionDescription?) {
@@ -200,7 +209,7 @@ class AudioCallActivity : AppCompatActivity() {
                     }
 
                     override fun onCreateFailure(p0: String?) {
-                        Log.d("i failed","setting sdp n stuff")
+                        Log.d("i failed", "setting sdp n stuff")
                         return
                     }
 
@@ -211,7 +220,8 @@ class AudioCallActivity : AppCompatActivity() {
             }
         }, sdpConstraints)
     }
-//
+
+    //
 //    /**
 //     * Received remote peer's media stream. we will get the first video track and render it
 //     */
@@ -219,7 +229,8 @@ class AudioCallActivity : AppCompatActivity() {
         //we have remote video stream. add to the renderer.
         val audioTrack = stream.audioTracks[0]
     }
-//
+
+    //
 //
 //    /**
 //     * Received local ice candidate. Send it to remote peer through signalling for negotiation
@@ -324,20 +335,21 @@ class AudioCallActivity : AppCompatActivity() {
                     )
                 )
 
-                ref.getReference("myplaceusers/$otherUser/webrtc/ice").addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        // Get Post object and use the values to update the UI
-                        val ice = dataSnapshot.getValue(IceCandidate::class.java)
-                        localPeer!!.addIceCandidate(ice)
-                        doAnswer()
-                    }
+                ref.getReference("myplaceusers/$otherUser/webrtc/ice")
+                    .addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            // Get Post object and use the values to update the UI
+                            val ice = dataSnapshot.getValue(IceCandidate::class.java)
+                            localPeer!!.addIceCandidate(ice)
+                            doAnswer()
+                        }
 
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Getting Post failed, log a message
-                        Log.w("", "loadPost:onCancelled", databaseError.toException())
-                        // ...
-                    }
-                })
+                        override fun onCancelled(databaseError: DatabaseError) {
+                            // Getting Post failed, log a message
+                            Log.w("", "loadPost:onCancelled", databaseError.toException())
+                            // ...
+                        }
+                    })
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -544,4 +556,21 @@ class AudioCallActivity : AppCompatActivity() {
         super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase))
     }
 
+    fun startCallNotification() {
+        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        val ringtone = RingtoneManager.getRingtone(this, notification)
+        ringtone.play()
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val vibrationCycle = longArrayOf(0, 1000, 1000)
+        if (vibrator.hasVibrator()) {
+            vibrator.vibrate(vibrationCycle, 1)
+        }
+    }
+    fun stopCallNotification() {
+        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        val ringtone = RingtoneManager.getRingtone(this, notification)
+        ringtone.stop()
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.cancel()
+    }
 }

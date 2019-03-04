@@ -78,8 +78,8 @@ android {
             minifyEnabled false
             versionNameSuffix "(build ${jenkinsBuildNumber})"
             manifestPlaceholders = [mapApiKeyValue: "AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ"]
-
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
         }
         debug {
             minifyEnabled false
@@ -93,6 +93,13 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+        }
+    }
+    signingConfigs {
+        release {
+            keyPassword project["keyPass"]
+            storeFile file(project["storeFilePath"])
+            storePassword project["storePass"]
         }
     }
 }
