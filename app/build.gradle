@@ -99,7 +99,7 @@ android {
         release {
             keyAlias project["keyAlias"]
             keyPassword project["keyPass"]
-            storeFile project["storeFilePath"]
+            storeFile project["storeFile"]
             storePassword project["storePass"]
         }
     }
