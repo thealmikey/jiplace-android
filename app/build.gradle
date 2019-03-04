@@ -97,6 +97,7 @@ android {
     }
     signingConfigs {
         release {
+            keyAlias roject["keyAlias"]
             keyPassword project["keyPass"]
             storeFile file(project["storeFilePath"])
             storePassword project["storePass"]
