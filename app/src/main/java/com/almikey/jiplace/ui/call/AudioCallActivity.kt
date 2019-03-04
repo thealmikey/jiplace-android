@@ -173,13 +173,16 @@ class AudioCallActivity : AppCompatActivity() {
                     }
 
                     override fun onCreateSuccess(p0: SessionDescription?) {
-                        var userWebRTCRef = ref.getReference("$userId/webrtc")
+                        Log.d("webrtc", "i succeded in creating local description")
+                        var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                         userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
                         userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
                         userWebRTCRef.child("call")
                             .child("$otherUser")
                             .child("oncall")
-                            .setValue(true)
+                            .setValue(true).addOnSuccessListener {
+                                Log.d("webrtc call","on create put data to firebase")
+                            }
                         //we will have the firebase functions monitoring the /call part to send a message to $otherUser
                         // about the incoming call
                         return
