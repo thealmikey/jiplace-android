@@ -167,22 +167,33 @@ class AudioCallActivity : AppCompatActivity() {
                     }
 
                     override fun onSetSuccess() {
-                        Log.d("setLocaldescription", "i succeded in setting description")
-                        var userRef =
-                            return
-                    }
-
-                    override fun onCreateSuccess(p0: SessionDescription?) {
+                        Log.d("setLocaldescription", "i succeded in setting description AFTER")
                         Log.d("webrtc", "i succeded in creating local description")
                         var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-                        userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
-                        userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
+                        userWebRTCRef.child("sdp").child("description")
+                            .setValue(sessionDescription.toString())
+                        userWebRTCRef.child("sdp").child("type")
+                            .setValue(sessionDescription!!.type.canonicalForm())
                         userWebRTCRef.child("call")
                             .child("$otherUser")
                             .child("oncall")
                             .setValue(true).addOnSuccessListener {
                                 Log.d("webrtc call","on create put data to firebase")
                             }
+                            return
+                    }
+
+                    override fun onCreateSuccess(p0: SessionDescription?) {
+                        Log.d("webrtc", "i succeded in creating local description BEFORE")
+//                        var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
+//                        userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
+//                        userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
+//                        userWebRTCRef.child("call")
+//                            .child("$otherUser")
+//                            .child("oncall")
+//                            .setValue(true).addOnSuccessListener {
+//                                Log.d("webrtc call","on create put data to firebase")
+//                            }
                         //we will have the firebase functions monitoring the /call part to send a message to $otherUser
                         // about the incoming call
                         return
