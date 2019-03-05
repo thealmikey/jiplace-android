@@ -70,7 +70,7 @@ class MyPlaceFirebaseMessagingService : FirebaseMessagingService() {
             //we get the caller ID and we can use it to get the other person's SDP stuff
             //and set it as remote
             var callerId:String =  remoteMessage.data.get("caller_id").toString();
-
+            sendCallJiplaceNotification(callerId)
         }
         // Check if message contains a notification payload.
         if (remoteMessage.notification != null) {

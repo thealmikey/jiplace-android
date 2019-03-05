@@ -93,9 +93,10 @@ class AudioCallActivity : AppCompatActivity() {
                 if (!otherUser.isEmpty() && otherUser != null && !callReceived) {
 //                onOfferReceived()
                     doCall()
+                } else {
+                    doAnswer()
                 }
             } else {
-                doAnswer()
                 Log.d("webrtc call", "couldn't get user media")
             }
         }
@@ -229,7 +230,7 @@ class AudioCallActivity : AppCompatActivity() {
     private fun gotRemoteStream(stream: MediaStream) {
         //we have remote video stream. add to the renderer.
         val audioTrack = stream.audioTracks[0]
-//        localPeer.add
+        localPeer.addTrack(audioTrack)
     }
 
     //
@@ -262,65 +263,115 @@ class AudioCallActivity : AppCompatActivity() {
 //    /**
 //     * SignallingCallback - Called when remote peer sends offer
 //     */
-    fun onOfferReceived() {
-        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // Get Post object and use the values to update the UI
-                val type = dataSnapshot.child("type").value as String
-                val description = dataSnapshot.child("description").value as String
-
-                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-
-                localPeer!!.setRemoteDescription(
-                    CustomSdpObserver("localSetRemote"),
-                    SessionDescription(SessionDescription.Type.OFFER, description)
-                )
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                Log.w("", "loadPost:onCancelled", databaseError.toException())
-                // ...
-            }
-        }
-        )
-    }
+//    fun onOfferReceived() {
+//        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                // Get Post object and use the values to update the UI
+//                val type = dataSnapshot.child("type").value as String
+//                val description = dataSnapshot.child("description").value as String
+//
+//                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
+//
+//                localPeer!!.setRemoteDescription(
+//                    CustomSdpObserver("localSetRemote"),
+//                    SessionDescription(SessionDescription.Type.OFFER, description)
+//                )
+//            }
+//
+//            override fun onCancelled(databaseError: DatabaseError) {
+//                // Getting Post failed, log a message
+//                Log.w("", "loadPost:onCancelled", databaseError.toException())
+//                // ...
+//            }
+//        }
+//        )
+//    }
 
     private fun doAnswer() {
-        localPeer!!.createAnswer(
-            object : SdpObserver {
-                override fun onSetFailure(p0: String?) {
-                    Log.d("create answer", "i failed in setting description")
-                    return
+        ref.getReference("myplaceusers/$otherUser/webrtc/sdp")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    if (dataSnapshot.child("type").value != null) {
+                        val type = dataSnapshot.child("type").value as String
+                        val description = dataSnapshot.child("description").value as String
+
+                        SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
+                        localPeer!!.setRemoteDescription(
+                            CustomSdpObserver("localSetRemote"),
+                            SessionDescription(
+                                SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
+                                description
+                            )
+                        )
+                    }
+                    ref.getReference("myplaceusers/$otherUser/webrtc/ice")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                // Get Post object and use the values to update the UI
+                                if (dataSnapshot.child("sdp").value != null) {
+                                    val sdp = dataSnapshot.child("sdp").value as String
+                                    val sdpMLineIndexLong = dataSnapshot.child("sdpMLineIndex").value as Long
+                                    val sdpMLineIndex = sdpMLineIndexLong.toInt()
+                                    val sdpMid = dataSnapshot.child("sdpMid").value as String
+                                    val serverUrl = dataSnapshot.child("serverUrl").value as String
+
+                                    val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
+
+                                    localPeer!!.addIceCandidate(ice)
+                                    localPeer!!.createAnswer(
+                                        object : SdpObserver {
+                                            override fun onSetFailure(p0: String?) {
+                                                Log.d("create answer", "i failed in setting description")
+                                                return
+                                            }
+
+                                            override fun onSetSuccess() {
+                                                Log.d("create answer", "i succeded in setting description")
+                                                return
+                                            }
+
+                                            override fun onCreateSuccess(p0: SessionDescription?) {
+                                                Log.d("create answer", "i succeded in creating description")
+                                                localPeer!!.setLocalDescription(CustomSdpObserver("localSetLocal"), p0)
+                                                // SignallingClientKotlin.emitMessage(sessionDescription)
+                                                var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
+                                                userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
+                                                userWebRTCRef.child("sdp").child("type")
+                                                    .setValue(p0!!.type.canonicalForm())
+                                                userWebRTCRef.child("call")
+                                                    .child("$otherUser")
+                                                    .child("oncall")
+                                                    .setValue(true).addOnSuccessListener {
+                                                        //                                                        onOfferReceived()
+                                                        Log.d("webrtc call", "i was called n now set up my stuff")
+                                                    }
+                                                return
+                                            }
+
+                                            override fun onCreateFailure(p0: String?) {
+                                                Log.d("create answer", "i failed in creating description")
+                                                return
+                                            }
+                                        }, MediaConstraints()
+                                    )
+                                }
+                            }
+
+                            override fun onCancelled(databaseError: DatabaseError) {
+                                // Getting Post failed, log a message
+                                Log.w("", "loadPost:onCancelled", databaseError.toException())
+                                // ...
+                            }
+                        })
                 }
 
-                override fun onSetSuccess() {
-                    Log.d("create answer", "i succeded in setting description")
-                    return
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("", "loadPost:onCancelled", databaseError.toException())
+                    // ...
                 }
-
-                override fun onCreateSuccess(p0: SessionDescription?) {
-                    Log.d("create answer", "i succeded in creating description")
-                    localPeer!!.setLocalDescription(CustomSdpObserver("localSetLocal"), p0)
-                    // SignallingClientKotlin.emitMessage(sessionDescription)
-                    var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-                    userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
-                    userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
-                    userWebRTCRef.child("call")
-                        .child("$otherUser")
-                        .child("oncall")
-                        .setValue(true).addOnSuccessListener {
-                            onOfferReceived()
-                        }
-                    return
-                }
-
-                override fun onCreateFailure(p0: String?) {
-                    Log.d("create answer", "i failed in creating description")
-                    return
-                }
-            }, MediaConstraints()
-        )
+            })
     }
 
     //
@@ -332,52 +383,52 @@ class AudioCallActivity : AppCompatActivity() {
     fun onAnswerReceived() {
         ref.getReference("myplaceusers/$otherUser/webrtc/sdp")
             .addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // Get Post object and use the values to update the UI
-                if(dataSnapshot.child("type").value != null){
-                val type = dataSnapshot.child("type").value as String
-                val description = dataSnapshot.child("description").value as String
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    if (dataSnapshot.child("type").value != null) {
+                        val type = dataSnapshot.child("type").value as String
+                        val description = dataSnapshot.child("description").value as String
 
-                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-                localPeer!!.setRemoteDescription(
-                    CustomSdpObserver("localSetRemote"),
-                    SessionDescription(
-                        SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
-                        description
-                    )
-                )
-                }
-                ref.getReference("myplaceusers/$otherUser/webrtc/ice")
-                    .addValueEventListener(object : ValueEventListener {
-                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-                            // Get Post object and use the values to update the UI
-                            if(dataSnapshot.child("sdp").value != null){
-                            val sdp = dataSnapshot.child("sdp").value as String
-                            val sdpMLineIndexLong = dataSnapshot.child("sdpMLineIndex").value as Long
-                            val sdpMLineIndex = sdpMLineIndexLong.toInt()
-                            val sdpMid = dataSnapshot.child("sdpMid").value as String
-                            val serverUrl = dataSnapshot.child("serverUrl").value as String
+                        SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
+                        localPeer!!.setRemoteDescription(
+                            CustomSdpObserver("localSetRemote"),
+                            SessionDescription(
+                                SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
+                                description
+                            )
+                        )
+                    }
+                    ref.getReference("myplaceusers/$otherUser/webrtc/ice")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                // Get Post object and use the values to update the UI
+                                if (dataSnapshot.child("sdp").value != null) {
+                                    val sdp = dataSnapshot.child("sdp").value as String
+                                    val sdpMLineIndexLong = dataSnapshot.child("sdpMLineIndex").value as Long
+                                    val sdpMLineIndex = sdpMLineIndexLong.toInt()
+                                    val sdpMid = dataSnapshot.child("sdpMid").value as String
+                                    val serverUrl = dataSnapshot.child("serverUrl").value as String
 
-                           val ice = IceCandidate(sdpMid,sdpMLineIndex,sdp)
+                                    val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
 
-                            localPeer!!.addIceCandidate(ice)
+                                    localPeer!!.addIceCandidate(ice)
+                                }
                             }
-                        }
 
-                        override fun onCancelled(databaseError: DatabaseError) {
-                            // Getting Post failed, log a message
-                            Log.w("", "loadPost:onCancelled", databaseError.toException())
-                            // ...
-                        }
-                    })
-            }
+                            override fun onCancelled(databaseError: DatabaseError) {
+                                // Getting Post failed, log a message
+                                Log.w("", "loadPost:onCancelled", databaseError.toException())
+                                // ...
+                            }
+                        })
+                }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                Log.w("", "loadPost:onCancelled", databaseError.toException())
-                // ...
-            }
-        })
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("", "loadPost:onCancelled", databaseError.toException())
+                    // ...
+                }
+            })
     }
 
     private fun hangup() {
@@ -539,6 +590,7 @@ class AudioCallActivity : AppCompatActivity() {
             vibrator.vibrate(vibrationCycle, 1)
         }
     }
+
     fun stopCallNotification() {
         val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
         val ringtone = RingtoneManager.getRingtone(this, notification)
