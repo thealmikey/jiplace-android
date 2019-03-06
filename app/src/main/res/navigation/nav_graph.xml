@@ -6,23 +6,16 @@
             app:startDestination="@id/theNewHome"
 >
     <fragment
-            android:id="@+id/theLayout"
-            android:name="com.almikey.jiplace.ui.homepage.HomeFragment"
-            android:label="main_fragment"
-            tools:layout="@layout/fragment_home_jiplace"
-    />
-    <fragment
             android:id="@+id/jiplaces"
             android:name="com.almikey.jiplace.ui.my_places.places_list.MyPlacesFragment"
             android:label="my places"
-            tools:layout="@layout/fragment_home_jiplace"
     >
     </fragment>
     <fragment
             android:id="@+id/theNewHome"
-            android:name="com.almikey.jiplace.ui.homepage.NewHomeFragment"
+            android:name="com.almikey.jiplace.ui.homepage.HomeFragment"
             android:label="new_fragment"
-            tools:layout="@layout/fragment_new_home_jiplace"
+            tools:layout="@layout/fragment_home_jiplace"
     />
     <fragment android:id="@+id/myPlacesUserFragment"
               android:name="com.almikey.jiplace.ui.my_places.users_list.MyPlacesUserFragment"

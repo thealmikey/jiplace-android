@@ -16,7 +16,7 @@ data class MyPlace(
     var time: Date=Date(),
     var timeRoundUp:Long= timeMinuteGroupUp(Date().time,15),
     var timeRoundDown:Long= timeMinuteGroupDown(Date().time, 15),
-    @Embedded var location: MyLocation=MyLocation(0f,0f),
+    @Embedded var location: MyLocation=MyLocation(0.0,0.0),
     var hint:String="",
     var image:String="",
     var people:Int=0,

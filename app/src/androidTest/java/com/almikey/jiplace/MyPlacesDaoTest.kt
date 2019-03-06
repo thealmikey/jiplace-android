@@ -35,17 +35,17 @@ class MyPlacesDaoTest:KoinTest {
 
     @Test
     fun testSave(){
-        val location = MyLocation(33.toFloat(),45.toFloat())
+        val location = MyLocation(33.0,45.0)
         val now = Date()
 
         var myPlace1  = MyPlace(location=location,time=now)
 
-        val location2 = MyLocation(63.toFloat(),95.toFloat())
+        val location2 = MyLocation(63.0,95.0)
         val now2 = Date()
 
         var myPlace2  = MyPlace(location=location2,time=now2)
 
-        val location3 = MyLocation(69.toFloat(),24.toFloat())
+        val location3 = MyLocation(69.0,24.0)
         val now3 = Date()
 
         var myPlace3  = MyPlace(location=location3,time=now3)
