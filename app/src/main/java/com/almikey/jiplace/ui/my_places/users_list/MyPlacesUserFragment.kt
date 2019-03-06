@@ -25,6 +25,8 @@ import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
 import com.almikey.jiplace.ui.call.AudioCallActivity
+import com.almikey.jiplace.util.Common.timeMinuteGroupDown
+import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.myplace.service.MyPlacesDao
 import com.firebase.geofire.GeoFire
@@ -84,30 +86,12 @@ class MyPlacesUserFragment : Fragment() {
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
 
-        fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
-            var timeInSec = theTime.toFloat() / 1000
-            var timeInMin = timeInSec / 60
-            var timeIn15 = timeInMin / min
-            var fixedTime = Math.floor(timeIn15.toDouble())
-            var timeInMs = fixedTime * min * 60 * 1000
-            return timeInMs.toLong()
-        }
-
-        fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
-            var timeInSec = theTime.toFloat() / 1000
-            var timeInMin = timeInSec / 60
-            var timeIn15 = timeInMin / min
-            var fixedTime = Math.ceil(timeIn15.toDouble())
-            var timeInMs = fixedTime * min * 60 * 1000
-            return timeInMs.toLong()
-        }
-
         var fifteenMinGroupUp = timeMinuteGroupUp(theTime!!, 15).toString()
         var fifteenMinGroupDown = timeMinuteGroupDown(theTime!!, 15).toString()
 
-        fun nearByPeopleObservableRoundUp(): Observable<String> = Observable.create<String> { emitter ->
+        fun nearByPeopleObservableRoundBy(timeGroup:String): Observable<String> = Observable.create<String> { emitter ->
             var ref1: DatabaseReference =
-                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$fifteenMinGroupUp")
+                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$timeGroup")
             var geoFire: GeoFire = GeoFire(ref1);
             var geoQuery = geoFire.queryAtLocation(GeoLocation(theLatitude!!, theLongitude!!), 0.2);
 
@@ -148,50 +132,10 @@ class MyPlacesUserFragment : Fragment() {
 
         }
 
-        fun nearByPeopleObservableRoundDown(): Observable<String> = Observable.create<String> { emitter ->
-            var ref1: DatabaseReference =
-                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$fifteenMinGroupDown")
-            var geoFire: GeoFire = GeoFire(ref1);
-            var geoQuery = geoFire.queryAtLocation(GeoLocation(theLatitude!!, theLongitude!!), 0.2);
+        var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
+        var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
 
-
-            geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
-                override fun onKeyEntered(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "detected a data entered")
-                    Log.d("geofire onEntered", "$key")
-                    emitter.onNext(key!!)
-                    return
-                }
-
-                override fun onKeyMoved(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "moved")
-                    Log.d("geofire on keymoved", "$key")
-                    // groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment))
-                    return
-                }
-
-                override fun onKeyExited(key: String?) {
-                    return
-                }
-
-                override fun onGeoQueryReady() {
-                    Log.d("geofire query ready", "callbacks have been called")
-                    Log.d("geofire url", "jiplaces/one/$theTime")
-                    Log.d("longitude", "longitude is $theLongitude")
-                    Log.d("latitude", "latitude is $theLatitude")
-                    emitter.onComplete()
-                    return
-                }
-
-                override fun onGeoQueryError(error: DatabaseError?) {
-                    Log.d("geofire error", "geofire error ${error?.message}")
-                    emitter.onError(error as Throwable)
-                }
-            });
-
-        }
-
-        fun nearByPeopleObservable() = nearByPeopleObservableRoundDown().mergeWith(nearByPeopleObservableRoundUp()).distinct()
+        fun nearByPeopleObservable() = nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct()
         //we use distinct to ensure that if someone jiplaces in the same place more than once, it doesn't appear
         //as two cards in the observer's
 
@@ -257,8 +201,8 @@ class MyPlacesUserFragment : Fragment() {
                                 .getReference("myplaceusers/$userr/profilepic/$fifteenMinGroupDown")
 
 
-                        fun refUpPicObservable() = Observable.create<ArrayList<String>> { emitter ->
-                            refUpPic.addValueEventListener(object : ValueEventListener {
+                        fun refPicObservable(picRef:DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
+                            picRef.addValueEventListener(object : ValueEventListener {
                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                     var theArr = arrayListOf<String>()
                                     if (dataSnapshot.childrenCount > 0) {
@@ -275,40 +219,17 @@ class MyPlacesUserFragment : Fragment() {
 
                                 }
                             })
-
-
                         }
 
-                        fun refDownPicObservable() = Observable.create<ArrayList<String>> { emitter ->
-                            refDownPic.addValueEventListener(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    var theArr = arrayListOf<String>()
-                                    if (dataSnapshot.childrenCount > 0) {
-                                        for (imageSnapshot in dataSnapshot.children) {
-                                            theArr.add(imageSnapshot.value as String)
-                                            Log.d("user frag", "image url up i got ${imageSnapshot.value}")
-                                        }
-                                        Log.d("the frag", "down ${theArr.toString()}")
-                                    }
-                                    emitter.onNext(theArr)
-                                }
+                        var refDownPicObservable = refPicObservable(refDownPic)
+                        var refUpPicObservable = refPicObservable(refUpPic)
 
-                                override fun onCancelled(p0: DatabaseError) {
-
-                                }
-                            })
-
-
-                        }
-
-
-                        refDownPicObservable().mergeWith(refUpPicObservable()).distinct().subscribe {
+                        refDownPicObservable.mergeWith(refUpPicObservable).distinct().subscribe {
 
                             var wrapper: UserWrapper = UserWrapper.initWithEntityId(userr);
                             wrapper.metaOn();
                             wrapper.onlineOn();
                             var user = wrapper.getModel();
-
 
                             Log.d("username", "${userr}")
                             if (FirebaseAuth.getInstance().uid != userr) {
@@ -429,9 +350,3 @@ class MyPlacesUserFragment : Fragment() {
     }
 
 }
-
-//@foreighnkeyUsers
-//if otheruser exists in  otherMyPlaces:
-//        ondelete = foreighkey.remove(alluserInstances) - 1 instance
-//
-//return (if user exists,  or deleted else return present Userinstance)
