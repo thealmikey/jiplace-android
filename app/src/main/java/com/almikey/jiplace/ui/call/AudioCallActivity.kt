@@ -110,7 +110,8 @@ class AudioCallActivity : AppCompatActivity() {
     //
     private fun start() {
         val audioSource = peerConnectionFactory.createAudioSource(MediaConstraints())
-        localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource)
+        var audioTrackId = (Math.random()*1000).toInt()
+        localAudioTrack = peerConnectionFactory.createAudioTrack("$audioTrackId", audioSource)
         gotUserMedia = true
     }
 
@@ -136,7 +137,8 @@ class AudioCallActivity : AppCompatActivity() {
     private fun addStreamToLocalPeer(localPeer: PeerConnection) {
         //creating local mediastream
         if (gotUserMedia) {
-            val stream = peerConnectionFactory.createLocalMediaStream("102")
+            var theStreamId = (Math.random()*1000).toInt()
+            val stream = peerConnectionFactory.createLocalMediaStream("$theStreamId")
             stream.addTrack(localAudioTrack)
             localPeer.addStream(stream)
         } else {
@@ -176,7 +178,7 @@ class AudioCallActivity : AppCompatActivity() {
                         Log.d("webrtc", "i succeded in creating local description")
                         var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                         userWebRTCRef.child("sdp").child("description")
-                            .setValue(sessionDescription)
+                            .setValue(sessionDescription.description)
                         userWebRTCRef.child("sdp").child("type")
                             .setValue(sessionDescription!!.type.canonicalForm())
                         userWebRTCRef.child("call")
@@ -230,7 +232,6 @@ class AudioCallActivity : AppCompatActivity() {
                     if (dataSnapshot.child("type").value != null) {
                         val type = dataSnapshot.child("type").value as String
                         val description = dataSnapshot
-                            .child("description")
                             .child("description").value as String
                         Log.d("webrtc call","doAnswer remote description sdp type is $type")
                         Log.d("webrtc call","doAnswer remote description sdp description is $description")
@@ -260,7 +261,7 @@ class AudioCallActivity : AppCompatActivity() {
                                                 Log.d("webrtc call", "doAnswer() directly under setRemoteDescription, onSetSuccess for setRemoteDesc i succeded in setting description")
 
 
-                                                localPeer!!.createAnswer(
+                                                localPeer?.createAnswer(
                                                     object : SdpObserver {
                                                         override fun onSetFailure(p0: String?) {
                                                             Log.d("create answer", " in onSetSuccess under localPeer.onCreateAnswer i failed in setting description")
@@ -290,7 +291,7 @@ class AudioCallActivity : AppCompatActivity() {
                                                         }
 
                                                         override fun onCreateFailure(p0: String?) {
-                                                            Log.d("create answer", "in onSetSuccess under localPeer.onCreateAnswer i failed in creating description")
+                                                            Log.d("create answer", "in onSetSuccess under localPeer.onCreateAnswer i failed in creating description $p0")
                                                             return
                                                         }
                                                     }, sdpConstraints
@@ -347,7 +348,6 @@ class AudioCallActivity : AppCompatActivity() {
                     if (dataSnapshot.child("type").value != null) {
                         val type = dataSnapshot.child("type").value as String
                         val description = dataSnapshot
-                            .child("description")
                             .child("description").value as String
 
                         SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
