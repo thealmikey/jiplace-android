@@ -257,14 +257,9 @@ class AudioCallActivity : AppCompatActivity() {
 
                                             override open fun onSetSuccess() {
                                                 Log.d("webrtc call", "doAnswer() i succeded in setting description")
-                                                return
-                                            }
-
-                                            override open fun onCreateSuccess(p0: SessionDescription?) {
                                                 Log.d("webrtc call", "doAnswer() i succeded in creating description")
                                                 Log.d("create answer", "i succeded in creating description")
                                                 localPeer!!.addIceCandidate(ice)
-
 
                                                 localPeer!!.createAnswer(
                                                     object : SdpObserver {
@@ -302,10 +297,10 @@ class AudioCallActivity : AppCompatActivity() {
                                                     }, MediaConstraints()
                                                 )
                                                 return
+                                            }
 
-
-
-
+                                            override open fun onCreateSuccess(p0: SessionDescription?) {
+                                                return
                                             }
 
                                             override open fun onCreateFailure(p0: String?) {
