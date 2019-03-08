@@ -248,6 +248,7 @@ class AudioCallActivity : AppCompatActivity() {
                                         val serverUrl = dataSnapshot.child("serverUrl").value as String
 
                                         val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
+                                        localPeer!!.addIceCandidate(ice)
                                         localPeer!!.setRemoteDescription(
                                             object: SdpObserver {
                                             override open fun onSetFailure(p0: String?) {
@@ -257,7 +258,7 @@ class AudioCallActivity : AppCompatActivity() {
 
                                             override open fun onSetSuccess() {
                                                 Log.d("webrtc call", "doAnswer() directly under setRemoteDescription, onSetSuccess for setRemoteDesc i succeded in setting description")
-                                                localPeer!!.addIceCandidate(ice)
+
 
                                                 localPeer!!.createAnswer(
                                                     object : SdpObserver {
