@@ -256,24 +256,22 @@ class AudioCallActivity : AppCompatActivity() {
                                             }
 
                                             override open fun onSetSuccess() {
-                                                Log.d("webrtc call", "doAnswer() i succeded in setting description")
-                                                Log.d("webrtc call", "doAnswer() i succeded in creating description")
-                                                Log.d("create answer", "i succeded in creating description")
+                                                Log.d("webrtc call", "doAnswer() directly under setRemoteDescription, onSetSuccess for setRemoteDesc i succeded in setting description")
                                                 localPeer!!.addIceCandidate(ice)
 
                                                 localPeer!!.createAnswer(
                                                     object : SdpObserver {
                                                         override fun onSetFailure(p0: String?) {
-                                                            Log.d("create answer", "i failed in setting description")
+                                                            Log.d("create answer", " in onSetSuccess under localPeer.onCreateAnswer i failed in setting description")
                                                             return
                                                         }
 
                                                         override fun onSetSuccess() {
-                                                            Log.d("create answer", "i succeded in setting description")
+                                                            Log.d("create answer", "in onSetSuccess under localPeer.onCreateAnswer i succeded in setting description")
                                                             return
                                                         }
                                                         override fun onCreateSuccess(p0: SessionDescription?) {
-                                                            localPeer!!.setLocalDescription(CustomSdpObserver("do answer setLocalDescription"), p0)
+                                                            localPeer!!.setLocalDescription(CustomSdpObserver("localPeer.answ.crtscss"), p0)
                                                             // SignallingClientKotlin.emitMessage(sessionDescription)
                                                             var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                                                             userWebRTCRef.child("sdp").child("description")
@@ -291,7 +289,7 @@ class AudioCallActivity : AppCompatActivity() {
                                                         }
 
                                                         override fun onCreateFailure(p0: String?) {
-                                                            Log.d("create answer", "i failed in creating description")
+                                                            Log.d("create answer", "in onSetSuccess under localPeer.onCreateAnswer i failed in creating description")
                                                             return
                                                         }
                                                     }, MediaConstraints()
@@ -304,7 +302,7 @@ class AudioCallActivity : AppCompatActivity() {
                                             }
 
                                             override open fun onCreateFailure(p0: String?) {
-                                                Log.d("webrtc call", "doAnswer() i failed in creating description")
+                                                Log.d("webrtc call", "under localpeer.setRemoteDescription doAnswer() local.setRemoteDescription i failed in creating description")
                                                 return
                                             }
                                         },
