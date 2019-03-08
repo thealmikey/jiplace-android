@@ -292,7 +292,7 @@ class AudioCallActivity : AppCompatActivity() {
                                                             Log.d("create answer", "in onSetSuccess under localPeer.onCreateAnswer i failed in creating description")
                                                             return
                                                         }
-                                                    }, MediaConstraints()
+                                                    }, sdpConstraints
                                                 )
                                                 return
                                             }
