@@ -176,7 +176,7 @@ class AudioCallActivity : AppCompatActivity() {
                         Log.d("webrtc", "i succeded in creating local description")
                         var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
                         userWebRTCRef.child("sdp").child("description")
-                            .setValue(sessionDescription.toString())
+                            .setValue(sessionDescription)
                         userWebRTCRef.child("sdp").child("type")
                             .setValue(sessionDescription!!.type.canonicalForm())
                         userWebRTCRef.child("call")
@@ -249,7 +249,7 @@ class AudioCallActivity : AppCompatActivity() {
                                             CustomSdpObserver("doAnswer localSetRemote"),
                                             SessionDescription(
                                                 SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
-                                                sdp
+                                                description
                                             )
                                         )
                                         val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
@@ -272,7 +272,8 @@ class AudioCallActivity : AppCompatActivity() {
                                                     localPeer!!.setLocalDescription(CustomSdpObserver("do answer setLocalDescription"), p0)
                                                     // SignallingClientKotlin.emitMessage(sessionDescription)
                                                     var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-                                                    userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
+                                                    userWebRTCRef.child("sdp").child("description")
+                                                        .setValue(p0!!.description)
                                                     userWebRTCRef.child("sdp").child("type")
                                                         .setValue(p0!!.type.canonicalForm())
                                                     userWebRTCRef.child("call")
@@ -345,7 +346,7 @@ class AudioCallActivity : AppCompatActivity() {
                                             CustomSdpObserver("localSetRemote"),
                                             SessionDescription(
                                                 SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
-                                                sdp
+                                                description
                                             )
                                         )
 
