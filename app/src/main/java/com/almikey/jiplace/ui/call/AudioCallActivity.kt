@@ -32,7 +32,7 @@ class AudioCallActivity : AppCompatActivity() {
     }
 
     lateinit var otherUser: String
-    var callReceived = false
+    var callReceived:Boolean = false
 
     val peerConnectionFactory by lazy {
         //Initialize PeerConnectionFactory globals.
@@ -49,9 +49,6 @@ class AudioCallActivity : AppCompatActivity() {
             .createPeerConnectionFactory();
 
     }
-//    "stun:stun.l.google.com:19302",
-//    "stun:stun1.l.google.com:19302",
-//    "stun:stun3.l.google.com:19302"
 
     var serverList =
         arrayListOf<String>(
@@ -130,8 +127,6 @@ class AudioCallActivity : AppCompatActivity() {
             .createPeerConnection(
                 rtcConfig, PCObserver()
             )
-
-
     }
 
     //
@@ -196,17 +191,6 @@ class AudioCallActivity : AppCompatActivity() {
 
                     override fun onCreateSuccess(p0: SessionDescription?) {
                         Log.d("webrtc", "i succeded in creating local description BEFORE")
-//                        var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-//                        userWebRTCRef.child("sdp").child("description").setValue(p0.toString())
-//                        userWebRTCRef.child("sdp").child("type").setValue(p0!!.type.canonicalForm())
-//                        userWebRTCRef.child("call")
-//                            .child("$otherUser")
-//                            .child("oncall")
-//                            .setValue(true).addOnSuccessListener {
-//                                Log.d("webrtc call","on create put data to firebase")
-//                            }
-                        //we will have the firebase functions monitoring the /call part to send a message to $otherUser
-                        // about the incoming call
                         return
                     }
 
@@ -233,59 +217,10 @@ class AudioCallActivity : AppCompatActivity() {
         localPeer.addTrack(audioTrack)
     }
 
-    //
-//
-//    /**
-//     * Received local ice candidate. Send it to remote peer through signalling for negotiation
-//     */
-    fun onIceCandidateReceived(iceCandidate: IceCandidate) {
-        //we have received ice candidate. We can set it to the other peer.
-        // SignallingClientKotlin.emitIceCandidate(iceCandidate)
-        var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-        val childUpdates = HashMap<String, Any?>()
-        iceCandidate.apply {
-            childUpdates["ice/sdp"] = sdp
-            childUpdates["ice/sdpMLineIndex"] = sdpMLineIndex
-            childUpdates["ice/sdpMid"] = sdpMid
-            childUpdates["ice/serverUrl"] = serverUrl
-        }
-        userWebRTCRef.updateChildren(childUpdates)
-
-    }
-
-
     fun onRemoteHangUp(msg: String) {
         // showToast("Remote Peer hungup")
         runOnUiThread({ this.hangup() })
     }
-
-    //
-//    /**
-//     * SignallingCallback - Called when remote peer sends offer
-//     */
-//    fun onOfferReceived() {
-//        ref.getReference("myplaceusers/$otherUser/webrtc/sdp").addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // Get Post object and use the values to update the UI
-//                val type = dataSnapshot.child("type").value as String
-//                val description = dataSnapshot.child("description").value as String
-//
-//                SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-//
-//                localPeer!!.setRemoteDescription(
-//                    CustomSdpObserver("localSetRemote"),
-//                    SessionDescription(SessionDescription.Type.OFFER, description)
-//                )
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("", "loadPost:onCancelled", databaseError.toException())
-//                // ...
-//            }
-//        }
-//        )
-//    }
 
     private fun doAnswer() {
         ref.getReference("myplaceusers/$otherUser/webrtc/sdp")
@@ -298,8 +233,6 @@ class AudioCallActivity : AppCompatActivity() {
                         Log.d("webrtc call","doAnswer remote description sdp type is $type")
                         Log.d("webrtc call","doAnswer remote description sdp description is $description")
                         SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-
-
 
                         ref.getReference("myplaceusers/$otherUser/webrtc/ice")
                             .addValueEventListener(object : ValueEventListener {
@@ -316,7 +249,7 @@ class AudioCallActivity : AppCompatActivity() {
                                             CustomSdpObserver("doAnswer localSetRemote"),
                                             SessionDescription(
                                                 SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
-                                                description
+                                                sdp
                                             )
                                         )
                                         val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
@@ -395,13 +328,7 @@ class AudioCallActivity : AppCompatActivity() {
                         val description = dataSnapshot.child("description").value as String
 
                         SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
-                        localPeer!!.setRemoteDescription(
-                            CustomSdpObserver("localSetRemote"),
-                            SessionDescription(
-                                SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
-                                description
-                            )
-                        )
+
 
                         ref.getReference("myplaceusers/$otherUser/webrtc/ice")
                             .addValueEventListener(object : ValueEventListener {
@@ -413,6 +340,14 @@ class AudioCallActivity : AppCompatActivity() {
                                         val sdpMLineIndex = sdpMLineIndexLong.toInt()
                                         val sdpMid = dataSnapshot.child("sdpMid").value as String
                                         val serverUrl = dataSnapshot.child("serverUrl").value as String
+
+                                        localPeer!!.setRemoteDescription(
+                                            CustomSdpObserver("localSetRemote"),
+                                            SessionDescription(
+                                                SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
+                                                sdp
+                                            )
+                                        )
 
                                         val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
 
