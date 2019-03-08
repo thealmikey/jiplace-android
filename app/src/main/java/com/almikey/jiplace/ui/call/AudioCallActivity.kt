@@ -229,7 +229,9 @@ class AudioCallActivity : AppCompatActivity() {
                     // Get Post object and use the values to update the UI
                     if (dataSnapshot.child("type").value != null) {
                         val type = dataSnapshot.child("type").value as String
-                        val description = dataSnapshot.child("description").value as String
+                        val description = dataSnapshot
+                            .child("description")
+                            .child("description").value as String
                         Log.d("webrtc call","doAnswer remote description sdp type is $type")
                         Log.d("webrtc call","doAnswer remote description sdp description is $description")
                         SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
@@ -326,7 +328,9 @@ class AudioCallActivity : AppCompatActivity() {
                     // Get Post object and use the values to update the UI
                     if (dataSnapshot.child("type").value != null) {
                         val type = dataSnapshot.child("type").value as String
-                        val description = dataSnapshot.child("description").value as String
+                        val description = dataSnapshot
+                            .child("description")
+                            .child("description").value as String
 
                         SessionDescription(SessionDescription.Type.fromCanonicalForm(type.toLowerCase()), description)
 
