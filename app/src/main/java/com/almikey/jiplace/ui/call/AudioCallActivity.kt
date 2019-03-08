@@ -247,52 +247,76 @@ class AudioCallActivity : AppCompatActivity() {
                                         val sdpMid = dataSnapshot.child("sdpMid").value as String
                                         val serverUrl = dataSnapshot.child("serverUrl").value as String
 
+                                        val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
                                         localPeer!!.setRemoteDescription(
-                                            CustomSdpObserver("doAnswer localSetRemote"),
+                                            object: SdpObserver {
+                                            override open fun onSetFailure(p0: String?) {
+                                                Log.d("webrtc call", "doAnswer() failed in setting sdp description")
+                                                return
+                                            }
+
+                                            override open fun onSetSuccess() {
+                                                Log.d("webrtc call", "doAnswer() i succeded in setting description")
+                                                return
+                                            }
+
+                                            override open fun onCreateSuccess(p0: SessionDescription?) {
+                                                Log.d("webrtc call", "doAnswer() i succeded in creating description")
+                                                Log.d("create answer", "i succeded in creating description")
+                                                localPeer!!.addIceCandidate(ice)
+
+
+                                                localPeer!!.createAnswer(
+                                                    object : SdpObserver {
+                                                        override fun onSetFailure(p0: String?) {
+                                                            Log.d("create answer", "i failed in setting description")
+                                                            return
+                                                        }
+
+                                                        override fun onSetSuccess() {
+                                                            Log.d("create answer", "i succeded in setting description")
+                                                            return
+                                                        }
+                                                        override fun onCreateSuccess(p0: SessionDescription?) {
+                                                            localPeer!!.setLocalDescription(CustomSdpObserver("do answer setLocalDescription"), p0)
+                                                            // SignallingClientKotlin.emitMessage(sessionDescription)
+                                                            var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
+                                                            userWebRTCRef.child("sdp").child("description")
+                                                                .setValue(p0!!.description)
+                                                            userWebRTCRef.child("sdp").child("type")
+                                                                .setValue(p0!!.type.canonicalForm())
+                                                            userWebRTCRef.child("call")
+                                                                .child("$otherUser")
+                                                                .child("oncall")
+                                                                .setValue(true).addOnSuccessListener {
+                                                                    //                                                        onOfferReceived()
+                                                                    Log.d("webrtc call", "create answer was called n now set up my stuff")
+                                                                }
+                                                            return
+                                                        }
+
+                                                        override fun onCreateFailure(p0: String?) {
+                                                            Log.d("create answer", "i failed in creating description")
+                                                            return
+                                                        }
+                                                    }, MediaConstraints()
+                                                )
+                                                return
+
+
+
+
+                                            }
+
+                                            override open fun onCreateFailure(p0: String?) {
+                                                Log.d("webrtc call", "doAnswer() i failed in creating description")
+                                                return
+                                            }
+                                        },
                                             SessionDescription(
                                                 SessionDescription.Type.fromCanonicalForm(type.toLowerCase()),
                                                 description
                                             )
-                                        )
-                                        val ice = IceCandidate(sdpMid, sdpMLineIndex, sdp)
-                                        localPeer!!.addIceCandidate(ice)
-                                        localPeer!!.createAnswer(
-                                            object : SdpObserver {
-                                                override fun onSetFailure(p0: String?) {
-                                                    Log.d("create answer", "i failed in setting description")
-                                                    return
-                                                }
-
-                                                override fun onSetSuccess() {
-                                                    Log.d("create answer", "i succeded in setting description")
-                                                    return
-                                                }
-
-                                                override fun onCreateSuccess(p0: SessionDescription?) {
-                                                    Log.d("create answer", "i succeded in creating description")
-
-                                                    localPeer!!.setLocalDescription(CustomSdpObserver("do answer setLocalDescription"), p0)
-                                                    // SignallingClientKotlin.emitMessage(sessionDescription)
-                                                    var userWebRTCRef = ref.getReference("myplaceusers/$userId/webrtc")
-                                                    userWebRTCRef.child("sdp").child("description")
-                                                        .setValue(p0!!.description)
-                                                    userWebRTCRef.child("sdp").child("type")
-                                                        .setValue(p0!!.type.canonicalForm())
-                                                    userWebRTCRef.child("call")
-                                                        .child("$otherUser")
-                                                        .child("oncall")
-                                                        .setValue(true).addOnSuccessListener {
-                                                            //                                                        onOfferReceived()
-                                                            Log.d("webrtc call", "i was called n now set up my stuff")
-                                                        }
-                                                    return
-                                                }
-
-                                                override fun onCreateFailure(p0: String?) {
-                                                    Log.d("create answer", "i failed in creating description")
-                                                    return
-                                                }
-                                            }, MediaConstraints()
                                         )
                                     }
                                 }
