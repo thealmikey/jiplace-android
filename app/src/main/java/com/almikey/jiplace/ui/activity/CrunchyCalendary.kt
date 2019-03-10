@@ -52,11 +52,16 @@ class CrunchyCalendary : AppCompatActivity() {
     lateinit var theUUId:String
     var theLateTime: Date? = null
 
+
+    fun generateRandomUUID():String{
+        return UUID.randomUUID().toString()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crunchy_calendary)
         if(savedInstanceState?.getString("theUuid")==null){
-         theUUId= UUID.randomUUID().toString()
+            theUUId = generateRandomUUID()
         }else{
             theUUId = savedInstanceState.getString("theUuid")
         }

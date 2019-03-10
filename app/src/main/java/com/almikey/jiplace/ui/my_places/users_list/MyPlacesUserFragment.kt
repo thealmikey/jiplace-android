@@ -120,13 +120,13 @@ class MyPlacesUserFragment : Fragment() {
                     Log.d("geofire url", "jiplaces/one/$theTime")
                     Log.d("longitude", "longitude is $theLongitude")
                     Log.d("latitude", "latitude is $theLatitude")
-                    emitter.onComplete()
+                             emitter.onComplete()
                     return
                 }
 
                 override fun onGeoQueryError(error: DatabaseError?) {
                     Log.d("geofire error", "geofire error ${error?.message}")
-                    emitter.onError(error as Throwable)
+                    emitter.onError(error!!.toException())
                 }
             });
 

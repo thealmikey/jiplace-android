@@ -13,13 +13,13 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.core.context.loadKoinModules
+import org.koin.standalone.StandAloneContext.loadKoinModules
+import org.koin.standalone.inject
 import org.koin.test.KoinTest
-import org.koin.test.inject
 import java.util.*
 
 @RunWith(AndroidJUnit4::class)
-class MyPlacesDaoTest:KoinTest {
+class MyPlacesDaoTest: KoinTest {
     val myPlacesDb:MyPlacesRoomDatabase by inject()
     val myPlacesDao:MyPlacesDao by inject()
 
