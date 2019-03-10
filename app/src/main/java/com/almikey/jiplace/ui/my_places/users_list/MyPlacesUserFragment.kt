@@ -22,8 +22,10 @@ import co.chatsdk.firebase.wrappers.UserWrapper
 import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
+import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
+import com.almikey.jiplace.service.MyPlaceSearchService.MyPlaceSearchServiceGeoFireImpl.findNearByPeopleObservable
 import com.almikey.jiplace.ui.call.AudioCallActivity
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
@@ -61,13 +63,18 @@ class MyPlacesUserFragment : Fragment() {
     var theLongitude: Double? = null
     var theTime: Long = 0L
     var theUUID: String = ""
+    var fifteenMinGroupUp:Long = 0L
+    var fifteenMinGroupDown:Long = 0L
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         theLatitude = arguments?.getDouble("latitude")
         theLongitude = arguments?.getDouble("longitude")
         theTime = arguments!!.getLong("theTime")
         theUUID = arguments!!.getString("theUUID")
-
+        if(theTime!=0L) {
+            fifteenMinGroupUp = timeMinuteGroupUp(theTime, 15)
+            fifteenMinGroupDown = timeMinuteGroupDown(theTime, 15)
+        }
         deleteThreadsFromOtherSide(scopeProvider)
     }
 
@@ -86,145 +93,22 @@ class MyPlacesUserFragment : Fragment() {
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
 
-        var fifteenMinGroupUp = timeMinuteGroupUp(theTime!!, 15).toString()
-        var fifteenMinGroupDown = timeMinuteGroupDown(theTime!!, 15).toString()
-
-        fun nearByPeopleObservableRoundBy(timeGroup:String): Observable<String> = Observable.create<String> { emitter ->
-            var ref1: DatabaseReference =
-                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$timeGroup")
-            var geoFire: GeoFire = GeoFire(ref1);
-            var geoQuery = geoFire.queryAtLocation(GeoLocation(theLatitude!!, theLongitude!!), 0.2);
-
-
-            geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
-                override fun onKeyEntered(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "detected a data entered")
-                    Log.d("geofire onEntered", "$key")
-                    emitter.onNext(key!!)
-                    return
-                }
-
-                override fun onKeyMoved(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "moved")
-                    Log.d("geofire on keymoved", "$key")
-                    // groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment))
-                    return
-                }
-
-                override fun onKeyExited(key: String?) {
-                    return
-                }
-
-                override fun onGeoQueryReady() {
-                    Log.d("geofire query ready", "callbacks have been called")
-                    Log.d("geofire url", "jiplaces/one/$theTime")
-                    Log.d("longitude", "longitude is $theLongitude")
-                    Log.d("latitude", "latitude is $theLatitude")
-                             emitter.onComplete()
-                    return
-                }
-
-                override fun onGeoQueryError(error: DatabaseError?) {
-                    Log.d("geofire error", "geofire error ${error?.message}")
-                    emitter.onError(error!!.toException())
-                }
-            });
-
-        }
-
-        var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
-        var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
-
-        fun nearByPeopleObservable() = nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct()
         //we use distinct to ensure that if someone jiplaces in the same place more than once, it doesn't appear
         //as two cards in the observer's
 
-        var myDisposable = nearByPeopleObservable().observeOn(Schedulers.io())
+        var findNearbyPeople= findNearByPeopleObservable(theTime, MyLocation(theLongitude!!,theLatitude!!))
+
+        findNearbyPeople.observeOn(Schedulers.io())
             .distinct().filter {
                 //                it != ChatSDK.currentUser().entityID
                 it != FirebaseAuth.getInstance().uid
             }
-            .subscribe { key ->
-                mOtherUserDao.findByUuid(key).subscribe({
-                    myPlaceUserSharedDao.findByMyPlaceUuid(theUUID)
-                    Log.d("exisiting user", "${it.firebaseUid}")
-                    Log.d("the UUID is", "${theUUID} existing user")
-                    myPlaceUserSharedDao.findByUuidAndMyPlaceKey(theUUID, key).subscribe({
-                        myPlaceUserSharedDao.findByMyPlaceUuid(theUUID)
-                        Log.d("exisitingsharedPlace", "${it.myPlaceSharedId}")
-                    }, { err ->
-                        if (err is EmptyResultSetException) {
-                            Log.d("user exists", "bt user shared no more creating them now")
-                            myPlaceUserSharedDao.insertAll(
-                                MyPlaceUserShared(
-                                    otherUserId = key,
-                                    sharedJiplaces = theUUID
-                                )
-                            )
-                            Log.d("the UUID is", "${theUUID} new user")
-                        }
-                    })
-                }, { err ->
-                    if (err is EmptyResultSetException) {
-                        Log.d("new user", "creating them now")
-                        mOtherUserDao.insertAll(OtherUser(firebaseUid = key))
-                        myPlaceUserSharedDao.insertAll(MyPlaceUserShared(otherUserId = key, sharedJiplaces = theUUID))
-                        Log.d("the UUID is", "${theUUID} new user")
-                    }
-                })
-            }
-
-        nearByPeopleObservable().observeOn(Schedulers.io())
-            .distinct()
             .autoDisposable(scopeProvider)
             .subscribe { userr ->
+                addNearbyUserToDbAsSharedUser(userr)
+                if(fifteenMinGroupDown!=0L && fifteenMinGroupDown!=0L){
 
-                Log.d("user frag", "user gotten $userr")
-//                var fbId = ChatSDK.currentUser().entityID
-                //get the images we need for the jiplacer pic
-
-
-                myPlacesDao.findByUuid(theUUID).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { myplace ->
-
-                        Log.d("user frag", "person got ${myplace.hint}")
-                        var fifteenMinGroupUp = myplace.timeRoundUp
-                        var fifteenMinGroupDown = myplace.timeRoundDown
-
-
-                        var refUpPic: DatabaseReference =
-                            FirebaseDatabase.getInstance()
-                                .getReference("myplaceusers/$userr/profilepic/$fifteenMinGroupUp")
-
-                        var refDownPic: DatabaseReference =
-                            FirebaseDatabase.getInstance()
-                                .getReference("myplaceusers/$userr/profilepic/$fifteenMinGroupDown")
-
-
-                        fun refPicObservable(picRef:DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
-                            picRef.addValueEventListener(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    var theArr = arrayListOf<String>()
-                                    if (dataSnapshot.childrenCount > 0) {
-                                        for (imageSnapshot in dataSnapshot.children) {
-                                            theArr.add(imageSnapshot.value as String)
-                                            Log.d("user frag", "image url up i got ${imageSnapshot.value}")
-                                        }
-                                        Log.d("the frag", "down ${theArr.toString()}")
-                                    }
-                                    emitter.onNext(theArr)
-                                }
-
-                                override fun onCancelled(p0: DatabaseError) {
-
-                                }
-                            })
-                        }
-
-                        var refDownPicObservable = refPicObservable(refDownPic)
-                        var refUpPicObservable = refPicObservable(refUpPic)
-
-                        refDownPicObservable.mergeWith(refUpPicObservable).distinct().subscribe {
+                  fetchOtherUserMyPlacePicsObserverble(userr).distinct().subscribe {myPlacePics ->
 
                             var wrapper: UserWrapper = UserWrapper.initWithEntityId(userr);
                             wrapper.metaOn();
@@ -239,7 +123,7 @@ class MyPlacesUserFragment : Fragment() {
                                         theTime,
                                         user,
                                         userr!!,
-                                        it
+                                        myPlacePics
                                     )
                                 )
                             }
@@ -251,102 +135,71 @@ class MyPlacesUserFragment : Fragment() {
         mRecyclerview.adapter = groupAdapter
     }
 
-    class JiplaceUserItem(
-        var context: Fragment,
-        var theTime: Long,
-        var user: User,
-        var theKey: String,
-        var imageUrls: ArrayList<String>
-    ) : Item() {
-        public val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(context) }
-        override fun bind(viewHolder: ViewHolder, position: Int) {
 
-            var wrapper: UserWrapper = UserWrapper.initWithEntityId(theKey);
-            var userObservable = wrapper.metaOn();
-            wrapper.onlineOn();
-            userObservable.observeOn(AndroidSchedulers.mainThread())
-                .autoDisposable(scopeProvider)
-                .subscribe {
-                    if (it.entityID!! != null) {
+    fun fetchOtherUserMyPlacePicsObserverble(userRef:String):Observable<ArrayList<String>>{
 
-                        viewHolder.itemView.jiplaceChat.isEnabled = true
+        fun picReference(timeGroup:Long):DatabaseReference{
+            return FirebaseDatabase.getInstance()
+                .getReference("myplaceusers/$userRef/profilepic/$timeGroup")
+        }
+        var refUpPic: DatabaseReference = picReference(fifteenMinGroupUp)
+        var refDownPic: DatabaseReference = picReference(fifteenMinGroupDown)
+
+        fun refPicObservable(picRef:DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
+            picRef.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    var theArr = arrayListOf<String>()
+                    if (dataSnapshot.childrenCount > 0) {
+                        for (imageSnapshot in dataSnapshot.children) {
+                            theArr.add(imageSnapshot.value as String)
+                            Log.d("user frag", "image url up i got ${imageSnapshot.value}")
+                        }
+                        Log.d("the frag", "down ${theArr.toString()}")
                     }
+                    emitter.onNext(theArr)
                 }
 
-            //load the first image from the images in the user/profile/{time}/uuid.png into
-            //the imageview
-            if (!imageUrls.isEmpty()) {
-                Picasso.get().load(imageUrls[0])
-                    .config(Bitmap.Config.RGB_565)
-                    .fit()
-                    .centerCrop()
-                    .placeholder(R.drawable.myuser)
-                    .error(R.drawable.myuser)
-                    .into(viewHolder.itemView.myplace_user_pic);
-                //set an onClick that shows other images associated with this jiplace for this timespan
-                //will load a view pager that loads thet items in imageUrls one by one
-                viewHolder.itemView.myplace_user_pic.setOnClickListener {
-                    var b: Bundle = Bundle();
-                    b.putStringArray("user_image_urls", imageUrls.toTypedArray());
-                    var i: Intent = Intent(context.context!!, UserImageActivity::class.java)
-                    i.putExtras(b);
-                    context.activity!!.startActivity(i)
-                }
-            }else{
-                if (imageUrls.isEmpty()){
-                    Picasso.get().load(R.drawable.myuser)
-                        .config(Bitmap.Config.RGB_565)
-                        .fit()
-                        .centerCrop()
-                        .placeholder(R.drawable.myuser)
-                        .error(R.drawable.myuser)
-                        .into(viewHolder.itemView.myplace_user_pic);
-                }
-            }
+                override fun onCancelled(p0: DatabaseError) {
 
-            viewHolder.itemView.jiplaceCall.setOnClickListener {
-                var b: Bundle = Bundle();
-                b.putString("other_user_to_call", user.entityID);
-                var i: Intent = Intent(context.context!!, AudioCallActivity::class.java)
-                i.putExtras(b);
-                context.activity!!.startActivity(i)
-            }
-
-
-            viewHolder.itemView.jiplaceChat.setOnClickListener {
-                Log.d("user entity id", "${user.entityID}")
-                if (FirebaseAuth.getInstance().uid!! != null && FirebaseAuth.getInstance().uid!! != user.entityID) {
-                    Log.d("uuid n", "is reached")
-                    ChatSDK.thread().createThread("${user.entityID}-$theTime", user, ChatSDK.currentUser())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .autoDisposable(scopeProvider)
-                        .subscribe(object : Consumer<Thread> {
-                            override fun accept(thread: Thread) {
-                                var fbId = FirebaseAuth.getInstance().uid
-                                var refChatLink: DatabaseReference = FirebaseDatabase.getInstance()
-                                    .getReference("myplaceusers/chat/$fbId/${user.entityID}")
-                                refChatLink.setValue(true)
-                                ChatSDK.ui()
-                                    .startChatActivityForID(context.activity!!.applicationContext, thread.entityID);
-                            }
-                        }, object : Consumer<Throwable> {
-                            override fun accept(throwable: Throwable) {
-                                // Handle error
-                            }
-                        });
                 }
-            }
-            //findNavController(context).navigate(R.id.myPlacesUserFragment)
+            })
         }
 
-        override fun getLayout(): Int {
-            return R.layout.jiplaces_users_inplace_user_item
-        }
+        var refDownPicObservable = refPicObservable(refDownPic)
+        var refUpPicObservable = refPicObservable(refUpPic)
 
-        override fun createViewHolder(itemView: View): ViewHolder {
-            return super.createViewHolder(itemView)
-        }
-
+        return refDownPicObservable.mergeWith(refUpPicObservable)
     }
 
+    @SuppressLint("AutoDispose")
+    fun addNearbyUserToDbAsSharedUser(otherUserId:String){
+        var key = otherUserId
+        mOtherUserDao.findByUuid(key).subscribe({
+            myPlaceUserSharedDao.findByMyPlaceUuid(theUUID)
+            Log.d("exisiting user", "${it.firebaseUid}")
+            Log.d("the UUID is", "${theUUID} existing user")
+            myPlaceUserSharedDao.findByUuidAndMyPlaceKey(theUUID, key).subscribe({
+                myPlaceUserSharedDao.findByMyPlaceUuid(theUUID)
+                Log.d("exisitingsharedPlace", "${it.myPlaceSharedId}")
+            }, { err ->
+                if (err is EmptyResultSetException) {
+                    Log.d("user exists", "bt user shared no more creating them now")
+                    myPlaceUserSharedDao.insertAll(
+                        MyPlaceUserShared(
+                            otherUserId = key,
+                            sharedJiplaces = theUUID
+                        )
+                    )
+                    Log.d("the UUID is", "${theUUID} new user")
+                }
+            })
+        }, { err ->
+            if (err is EmptyResultSetException) {
+                Log.d("new user", "creating them now")
+                mOtherUserDao.insertAll(OtherUser(firebaseUid = key))
+                myPlaceUserSharedDao.insertAll(MyPlaceUserShared(otherUserId = key, sharedJiplaces = theUUID))
+                Log.d("the UUID is", "${theUUID} new user")
+            }
+        })
+    }
 }

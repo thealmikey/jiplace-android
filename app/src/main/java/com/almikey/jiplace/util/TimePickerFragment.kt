@@ -70,21 +70,4 @@ class TimePickerFragment() : DialogFragment(), TimePickerDialog.OnTimeSetListene
         Log.d("i went","past time picker worker")
         WorkManager.getInstance().enqueue(timePickWorker)
     }
-
-    fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
-        var timeInSec = theTime.toFloat() / 1000
-        var timeInMin = timeInSec / 60
-        var timeIn15 = timeInMin / min
-        var fixedTime = Math.floor(timeIn15.toDouble())
-        var timeInMs = fixedTime * min * 60 * 1000
-        return timeInMs.toLong()
-    }
-    fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
-        var timeInSec = theTime.toFloat() / 1000
-        var timeInMin = timeInSec / 60
-        var timeIn15 = timeInMin / min
-        var fixedTime = Math.ceil(timeIn15.toDouble())
-        var timeInMs = fixedTime * min * 60 * 1000
-        return timeInMs.toLong()
-    }
 }

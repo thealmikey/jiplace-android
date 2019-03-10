@@ -37,6 +37,8 @@ class DeleteThreadByOtherWorker(context: Context, params: WorkerParameters) : Wo
                         Log.d("chat snapshot", chatSnapshot.toString())
                         Log.d("chat value", chatSnapshot.value.toString())
                         Log.d("chat key", chatSnapshot.key.toString())
+                        //chat status is a flag that tells us whether or not we should delete a chat with a user
+                        //if false it means we should delete
                         var chatStatus = chatSnapshot.value as Boolean
                         if (chatStatus == false) {
                             var wrapper: UserWrapper = UserWrapper.initWithEntityId(chatSnapshot.key);
