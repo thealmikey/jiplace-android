@@ -20,7 +20,7 @@ import io.reactivex.ObservableEmitter
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import io.reactivex.functions.Cancellable
-import kotlinx.android.synthetic.main.fragment_new_home_jiplace.*
+import kotlinx.android.synthetic.main.fragment_home_jiplace.*
 
 class CurrentLocationRx(var context: Context) {
 

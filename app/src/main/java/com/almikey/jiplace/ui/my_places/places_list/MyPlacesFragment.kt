@@ -33,7 +33,8 @@ import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.model.MyPlaceProfilePic
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.repository.MyPlacesRepository
-import com.almikey.jiplace.ui.my_places.ContextMenuRecyclerView
+import com.almikey.jiplace.util.Common.timeMinuteGroupDown
+import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.FilePickerUtil
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.UploadMyPlaceImageWorker
@@ -52,26 +53,6 @@ import io.reactivex.subjects.PublishSubject
 
 class MyPlacesFragment : Fragment(), KoinComponent {
 
-
-    fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
-        var timeInSec = theTime.toFloat() / 1000
-        var timeInMin = timeInSec / 60
-        var timeIn15 = timeInMin / min
-        var fixedTime = Math.floor(timeIn15.toDouble())
-        var timeInMs = fixedTime * min * 60 * 1000
-        return timeInMs.toLong()
-    }
-
-    fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
-        var timeInSec = theTime.toFloat() / 1000
-        var timeInMin = timeInSec / 60
-        var timeIn15 = timeInMin / min
-        var fixedTime = Math.ceil(timeIn15.toDouble())
-        var timeInMs = fixedTime * min * 60 * 1000
-        return timeInMs.toLong()
-    }
-
-
     val myPlacesRepo: MyPlacesRepository by inject()
     val myPlacesDao: MyPlacesDao by inject()
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
@@ -87,8 +68,6 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     lateinit var myPlacesAdapter: MyPlaceAdapter
 
     val firebaseAuth by lazy { FirebaseAuth.getInstance() }
-
-    var mySubject = PublishSubject.create<ContextMenuRecyclerView.RecyclerViewContextMenuInfo>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,7 +99,6 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     @SuppressLint("AutoDispose")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        mRecyclerview = view?.findViewById(R.id.jiplace_recyclerview) as RecyclerView
         mCoordinatorLayout = view?.findViewById(R.id.jiplaces_container_for_recyclerview) as CoordinatorLayout
         mRecyclerview = ContextMenuRecyclerView(this.context!!)
         var params: ViewGroup.LayoutParams =
@@ -128,10 +106,6 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         mRecyclerview.layoutParams = params
         mCoordinatorLayout.addView(mRecyclerview)
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
-
-//        var mListener =  RvMyPlaceItemListener(this.context!!,mRecyclerview,MyPlaceClickListener(this.context!!))
-//
-//        mRecyclerview.addOnItemTouchListener(mListener)
 
 
         myPlacesAdapter = MyPlaceAdapter(this, myPlaces)
@@ -152,70 +126,6 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
         mRecyclerview.adapter = myPlacesAdapter
         registerForContextMenu(mRecyclerview);
-        var mySubjectObservable: Observable<ContextMenuRecyclerView.RecyclerViewContextMenuInfo> = mySubject
-//
-//        @SuppressLint("AutoDispose")
-//      var cc =  mySubjectObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe {info ->
-//           myPlacesRepo.findByUuid(myPlaces[info.position].uuidString).subscribe {thePlace ->
-//               var newPlace = thePlace.copy(deletedStatus = "pending")
-//               myPlacesRepo.update(newPlace)
-//               var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
-//                   .findByMyPlaceUuid(thePlace.uuidString)
-//                   .blockingFirst()
-//               Log.d("users in place","${usersInPlace.size}")
-//
-//               var theFbId = firebaseAuth.uid!!
-//               var ref: DatabaseReference = FirebaseDatabase
-//                   .getInstance().reference
-//
-//               var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
-////            var fiveMinGroupDown = timeMinuteGroupDown(it.time.time, 5).toString()
-//               var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
-//
-//               val childUpdates = HashMap<String, Any?>()
-//               childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
-//               childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
-//
-//               ref.updateChildren(childUpdates).addOnSuccessListener {
-//
-//                   var newPlace = thePlace.copy(deletedStatus = "true")
-//                   myPlacesDao.update(newPlace)
-//                   var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
-//                       .findByMyPlaceUuid(thePlace.uuidString)
-//                       .blockingFirst()
-//                   myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
-//                   for (i in usersInPlace) {
-//                       Log.d("shared user", "i got in the loop ${usersInPlace.size}")
-//                       var userTimes: Int = myPlaceUserSharedDao.findByMyPlaceUuid(thePlace.uuidString).blockingFirst().size
-//                       Log.d("shared user", "the number of jiplaces shared is $userTimes")
-//                       if (userTimes == 0) {
-//                           var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
-//                           var userObservable = wrapper.metaOn();
-//
-//                           var myUser = userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).blockingFirst()
-//                           if (myUser.entityID!! != null) {
-//                               for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
-//                                   if (thread.getUsers().size === 2 &&
-//                                       thread.containsUser(ChatSDK.currentUser()) &&
-//                                       thread.containsUser(myUser)
-//                                   ) {
-//                                       var jointThread = thread
-//                                       DaoCore.deleteEntity(jointThread);
-//                                       DaoCore.deleteEntity(myUser);
-//                                   }
-//                               }
-//                           }
-//
-//                       }
-//                   }
-//
-//               }
-//
-//
-//           }
-//        }
-
-
     }
 
 
@@ -237,89 +147,125 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                 true
             }
             R.id.delete_jiplace -> {
-                Log.d("delete", "context menu")
-//                mySubject.onNext(info)
-
-//                    {info ->
-                myPlacesRepo.findByUuid(myPlaces[info.position].uuidString)
-                    .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe { thePlace ->
-                        var newPlace = thePlace.copy(deletedStatus = "pending")
-                        myPlacesRepo.update(newPlace)
-                        var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
-                            .findByMyPlaceUuid(thePlace.uuidString)
-                            .blockingFirst()
-                        Log.d("users in place", "${usersInPlace.size}")
-
-                        var theFbId = firebaseAuth.uid!!
-                        var ref: DatabaseReference = FirebaseDatabase
-                            .getInstance().reference
-
-                        var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
-//            var fiveMinGroupDown = timeMinuteGroupDown(it.time.time, 5).toString()
-                        var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
-
-                        val childUpdates = HashMap<String, Any?>()
-                        childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
-                        childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
-
-                        ref.updateChildren(childUpdates).addOnSuccessListener {
-
-                            CompletableFromAction {
-                                var newPlace = thePlace.copy(deletedStatus = "true")
-                                myPlacesDao.update(newPlace)
-                                var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
-                                    .findByMyPlaceUuid(thePlace.uuidString)
-                                    .blockingFirst()
-                                myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
-                                for (i in usersInPlace) {
-                                    Log.d("shared user", "i got in the loop ${usersInPlace.size}")
-                                    var userTimes: Int =
-                                        myPlaceUserSharedDao.findByMyPlaceUuid(thePlace.uuidString).blockingFirst().size
-                                    Log.d("shared user", "the number of jiplaces shared is $userTimes")
-                                    if (userTimes == 0) {
-                                        var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
-                                        var userObservable = wrapper.metaOn();
-
-                                        var myUser =
-                                            userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
-                                                .blockingFirst()
-                                        if (myUser.entityID!! != null) {
-                                            for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
-                                                if (thread.getUsers().size === 2 &&
-                                                    thread.containsUser(ChatSDK.currentUser()) &&
-                                                    thread.containsUser(myUser)
-                                                ) {
-                                                    var jointThread = thread
-                                                    DaoCore.deleteEntity(jointThread);
-                                                    DaoCore.deleteEntity(myUser);
-                                                    var refUserChatLink: DatabaseReference =
-                                                        FirebaseDatabase.getInstance()
-                                                            .getReference("myplaceusers/chat/${firebaseAuth.uid}/${myUser.entityID}")
-                                                    var refUserChatOtherLink: DatabaseReference =
-                                                        FirebaseDatabase.getInstance()
-                                                            .getReference("myplaceusers/chat/${myUser.entityID}/${firebaseAuth.uid}")
-                                                    refUserChatLink.setValue(false)
-                                                    refUserChatOtherLink.setValue(false)
-                                                }
-                                            }
-                                        }
-
-                                    }
-                                }
-
-                            }.subscribeOn(Schedulers.io()).subscribe()
-                        }
-
-                    }
-                Toast.makeText(this.context, "$ delete {info.position}", Toast.LENGTH_SHORT).show()
-                true
+                deletePlaceFromDatabase(info)
+                return true
             }
             else -> super.onContextItemSelected(item)
         }
-
-
-        // handle menu item here
+               // handle menu item here
         return super.onContextItemSelected(item)
+    }
+
+
+    @SuppressLint("AutoDispose")
+    fun deletePlaceFromDatabase(info:ContextMenuRecyclerView.RecyclerViewContextMenuInfo){
+        Log.d("delete", "context menu")
+        myPlacesRepo.findByUuid(myPlaces[info.position].uuidString)
+            .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe { thePlace ->
+                /**
+                 *      we set a flag in the database instead of deleting the place someone
+                 *      this helps when we synchronize with firebase to also delete the places
+                 *      there. We should eventually delete the places once we're sure the delete has occurred
+                 *      on firebase
+                 */
+                var newPlace = thePlace.copy(deletedStatus = "pending")
+                myPlacesRepo.update(newPlace)
+
+                var theFbId = firebaseAuth.uid!!
+                var ref: DatabaseReference = FirebaseDatabase
+                    .getInstance().reference
+
+                var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
+                var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
+
+                /**
+                 *    Jiplace are stored in 15 minute intervals
+                 *    if a person jiplaces themselves at 12:12, it's rounded up to 12:15 and down to 12:00
+                 *    if another person jiplaces themseleves at 11:40,it's rounded up to 12:00 and down to 11:30
+                 *    searches for jiplaces are then possible for people who fall in their rounded up and down
+                 *    categories
+                 *    this helps prevent searching the whole database for people who have placed themselves as
+                 *    too granular time would lead to too many queries especially as the database grows
+                 */
+                val childUpdates = HashMap<String, Any?>()
+                childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
+                childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
+
+                ref.updateChildren(childUpdates).addOnSuccessListener {
+                    CompletableFromAction {
+                        var newPlace = thePlace.copy(deletedStatus = "true")
+                        myPlacesDao.update(newPlace)
+                        deleteOtherUsersFromDeletedPlace(thePlace.uuidString)
+                    }.subscribeOn(Schedulers.io()).subscribe()
+                }
+            }
+    }
+
+    /**
+     *       For every User who Jiplaces with us and starts a chat,we create a JOIN column
+     *       called OtherUser that involves MyPlace table and OtherUser,
+     *       if a user shares multiple Jiplaces with us
+     *       e.g 12:30 ,23rd Feb at Ihub and another one like 12:00, 1st Jan Uhuru park
+     *       they have 2 entries in the OtherUser table
+     *       if we delete one Jiplace the entries reduce by 1,
+     *       We check the number of entries in the OtherUser,
+     *       if it's greater than 0 we don't delete the message threads we share
+     *       but if we delete all shared Jiplaces, the number of entries reduces to 0
+     *       i.e. the Ihub one and the Uhuru park one
+     *       we delete their thread.
+     *
+     *       As users have to share Jiplaces, i.e. if you have 2 Jiplaces
+     *       that include userA, then userA can never have more or less of Jiplaces that have us
+     *       thus if you delete the Jiplaces on
+     *       your side and the thread disappears, it's also triggered on the other side
+     *       this is done by setting flags on firebase indicating that the user should delete
+     *       their Jiplace as well. This happens automatically on startup
+     */
+    fun deleteOtherUsersFromDeletedPlace(placeUUID:String){
+        var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
+            .findByMyPlaceUuid(placeUUID)
+            .blockingFirst()
+        Log.d("users in place", "${usersInPlace.size}")
+        var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
+            .findByMyPlaceUuid(placeUUID)
+            .blockingFirst()
+
+        myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
+        for (i in usersInPlace) {
+            Log.d("shared user", "i got in the loop ${usersInPlace.size}")
+            var userTimes: Int =
+                myPlaceUserSharedDao.findByMyPlaceUuid(placeUUID).blockingFirst().size
+            Log.d("shared user", "the number of jiplaces shared is $userTimes")
+            if (userTimes == 0) {
+                var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
+                var userObservable = wrapper.metaOn();
+
+                var myUser =
+                    userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
+                        .blockingFirst()
+                if (myUser.entityID!! != null) {
+                    for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
+                        if (thread.getUsers().size === 2 &&
+                            thread.containsUser(ChatSDK.currentUser()) &&
+                            thread.containsUser(myUser)
+                        ) {
+                            var jointThread = thread
+                            DaoCore.deleteEntity(jointThread);
+                            DaoCore.deleteEntity(myUser);
+                            var refUserChatLink: DatabaseReference =
+                                FirebaseDatabase.getInstance()
+                                    .getReference("myplaceusers/chat/${firebaseAuth.uid}/${myUser.entityID}")
+                            var refUserChatOtherLink: DatabaseReference =
+                                FirebaseDatabase.getInstance()
+                                    .getReference("myplaceusers/chat/${myUser.entityID}/${firebaseAuth.uid}")
+                            refUserChatLink.setValue(false)
+                            refUserChatOtherLink.setValue(false)
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
 
@@ -357,6 +303,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         }
     }
 
+
     @SuppressLint("AutoDispose")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -364,55 +311,17 @@ class MyPlacesFragment : Fragment(), KoinComponent {
             if (data != null) {
 
                 var uri = FilePickerUtil.getPath(context!!, data.getData())
+                var imageDataLocation = data.getData().toString()
 
                 Log.d("local uri", "the local uri is $uri")
                 var theUuid = myPlacesAdapter.uuidForSelectedImage
                 var thePosition = myPlacesAdapter.thePosition
-                // do you stuff here
+                updatePicInDatabase(uri!!,theUuid,imageDataLocation)
                 var thePlaces =  myPlaces.toMutableList()
                 thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = "placeholder"))
                 myPlacesAdapter.myplaces = thePlaces
                 mRecyclerview.adapter!!.notifyItemChanged(thePosition)
-                myPlacesRepo.findByUuid(theUuid).take(1)
-                    .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
-                        var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
-                        //change item in db and change the adapter
-                        Completable.fromAction {
-                            myPlacesRepo.update(newPlace)
-                        }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                            myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
-                                .autoDisposable(scopeProvider)
-                                .subscribe {
-                                    myPlaces.clear()
-                                    it.forEach {
-                                        if (it.deletedStatus == "false") {
-                                            myPlaces.add(it)
-                                        }
 
-                                    }
-                                    myPlacesAdapter.notifyDataSetChanged()
-                                }
-//                            mRecyclerview.adapter!!.notifyItemChanged(thePosition)
-                            Log.d("adapter notify", "after loading adapter notify")
-                        }
-                        var constraint: Constraints =
-                            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-                        var uploadMyPlaceImageWorker =
-                            OneTimeWorkRequestBuilder<UploadMyPlaceImageWorker>().addTag("place-picker").setInputData(
-                                Data.Builder()
-                                    .putString("UuidKey", it.uuidString)
-                                    .putAll(
-                                        mapOf(
-                                            "fifteenMinGroupUp" to it.timeRoundUp,
-                                            "fifteenMinGroupDown" to it.timeRoundDown,
-                                            "localPicUri" to data.getData().toString()
-                                        )
-                                    )
-                                    .build()
-                            )
-                                .setConstraints(constraint).build()
-                        WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
-                    }
             } else {
                 var thePosition = myPlacesAdapter.thePosition
                 var thePlaces =  myPlaces.toMutableList()
@@ -422,27 +331,55 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                 mRecyclerview.adapter!!.notifyItemChanged(thePosition)
             }
         }
+
+
     }
 
+    @SuppressLint("AutoDispose")
+    fun updatePicInDatabase(uri:String,theUuid:String,imageDataLocation:String){
+        myPlacesRepo.findByUuid(theUuid).take(1)
+            .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
+                var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
+                //change item in db and change the adapter
+                Completable.fromAction {
+                    myPlacesRepo.update(newPlace)
+                }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
+                    myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
+                        .autoDisposable(scopeProvider)
+                        .subscribe {
+                            myPlaces.clear()
+                            it.forEach {
+                                if (it.deletedStatus == "false") {
+                                    myPlaces.add(it)
+                                }
+
+                            }
+                            myPlacesAdapter.notifyDataSetChanged()
+                        }
+                    Log.d("adapter notify", "after loading adapter notify")
+                }
+                uploadPicToFirebase(it,imageDataLocation)
+            }
+    }
+
+    fun uploadPicToFirebase(it:MyPlace,imageDataLocation:String){
+        var constraint: Constraints =
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        var uploadMyPlaceImageWorker =
+            OneTimeWorkRequestBuilder<UploadMyPlaceImageWorker>().addTag("place-picker").setInputData(
+                Data.Builder()
+                    .putString("UuidKey", it.uuidString)
+                    .putAll(
+                        mapOf(
+                            "fifteenMinGroupUp" to it.timeRoundUp,
+                            "fifteenMinGroupDown" to it.timeRoundDown,
+                            "localPicUri" to imageDataLocation
+                        )
+                    )
+                    .build()
+            )
+                .setConstraints(constraint).build()
+        WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
+    }
 
 }
-
-
-//    override fun onContextItemSelected(item: MenuItem): Boolean {
-//
-//        when (item.getItemId()) {
-//            R.id.edit_jiplace_description -> {
-//
-//                return true
-//            }
-//            R.id.delete_jiplace -> {
-//
-//                return true
-//            }
-//        }
-//        return super.onContextItemSelected(item);
-//    }
-
-
-
-

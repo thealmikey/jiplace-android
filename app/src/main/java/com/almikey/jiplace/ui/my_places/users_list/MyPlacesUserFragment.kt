@@ -1,9 +1,8 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.users_list
 
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -12,34 +11,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.EmptyResultSetException
-import androidx.room.Room
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import co.chatsdk.core.dao.User
 import co.chatsdk.core.dao.Thread
 import co.chatsdk.core.session.ChatSDK
 import co.chatsdk.firebase.wrappers.UserWrapper
 
 import com.almikey.jiplace.R
-import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
 import com.almikey.jiplace.ui.call.AudioCallActivity
-import com.almikey.jiplace.util.ThreadCleanUp
+import com.almikey.jiplace.util.Common.timeMinuteGroupDown
+import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
-import com.almikey.jiplace.worker.DeleteThreadByOtherWorker
 import com.almikey.myplace.service.MyPlacesDao
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
-import com.firebase.geofire.GeoQueryDataEventListener
 import com.firebase.geofire.GeoQueryEventListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -52,12 +43,9 @@ import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
-import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.jiplaces_users_inplace_user_item.view.*
-import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MyPlacesUserFragment : Fragment() {
@@ -98,30 +86,12 @@ class MyPlacesUserFragment : Fragment() {
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
         val groupAdapter = GroupAdapter<ViewHolder>()
 
-        fun timeMinuteGroupUp(theTime: Long, min: Int): Long {
-            var timeInSec = theTime.toFloat() / 1000
-            var timeInMin = timeInSec / 60
-            var timeIn15 = timeInMin / min
-            var fixedTime = Math.floor(timeIn15.toDouble())
-            var timeInMs = fixedTime * min * 60 * 1000
-            return timeInMs.toLong()
-        }
-
-        fun timeMinuteGroupDown(theTime: Long, min: Int): Long {
-            var timeInSec = theTime.toFloat() / 1000
-            var timeInMin = timeInSec / 60
-            var timeIn15 = timeInMin / min
-            var fixedTime = Math.ceil(timeIn15.toDouble())
-            var timeInMs = fixedTime * min * 60 * 1000
-            return timeInMs.toLong()
-        }
-
         var fifteenMinGroupUp = timeMinuteGroupUp(theTime!!, 15).toString()
         var fifteenMinGroupDown = timeMinuteGroupDown(theTime!!, 15).toString()
 
-        fun nearByPeopleObservableRoundUp(): Observable<String> = Observable.create<String> { emitter ->
+        fun nearByPeopleObservableRoundBy(timeGroup:String): Observable<String> = Observable.create<String> { emitter ->
             var ref1: DatabaseReference =
-                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$fifteenMinGroupUp")
+                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$timeGroup")
             var geoFire: GeoFire = GeoFire(ref1);
             var geoQuery = geoFire.queryAtLocation(GeoLocation(theLatitude!!, theLongitude!!), 0.2);
 
@@ -150,62 +120,22 @@ class MyPlacesUserFragment : Fragment() {
                     Log.d("geofire url", "jiplaces/one/$theTime")
                     Log.d("longitude", "longitude is $theLongitude")
                     Log.d("latitude", "latitude is $theLatitude")
-                    emitter.onComplete()
+                             emitter.onComplete()
                     return
                 }
 
                 override fun onGeoQueryError(error: DatabaseError?) {
                     Log.d("geofire error", "geofire error ${error?.message}")
-                    emitter.onError(error as Throwable)
+                    emitter.onError(error!!.toException())
                 }
             });
 
         }
 
-        fun nearByPeopleObservableRoundDown(): Observable<String> = Observable.create<String> { emitter ->
-            var ref1: DatabaseReference =
-                FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$fifteenMinGroupDown")
-            var geoFire: GeoFire = GeoFire(ref1);
-            var geoQuery = geoFire.queryAtLocation(GeoLocation(theLatitude!!, theLongitude!!), 0.2);
+        var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
+        var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
 
-
-            geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
-                override fun onKeyEntered(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "detected a data entered")
-                    Log.d("geofire onEntered", "$key")
-                    emitter.onNext(key!!)
-                    return
-                }
-
-                override fun onKeyMoved(key: String?, location: GeoLocation?) {
-                    Log.d("geofire firebase", "moved")
-                    Log.d("geofire on keymoved", "$key")
-                    // groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment))
-                    return
-                }
-
-                override fun onKeyExited(key: String?) {
-                    return
-                }
-
-                override fun onGeoQueryReady() {
-                    Log.d("geofire query ready", "callbacks have been called")
-                    Log.d("geofire url", "jiplaces/one/$theTime")
-                    Log.d("longitude", "longitude is $theLongitude")
-                    Log.d("latitude", "latitude is $theLatitude")
-                    emitter.onComplete()
-                    return
-                }
-
-                override fun onGeoQueryError(error: DatabaseError?) {
-                    Log.d("geofire error", "geofire error ${error?.message}")
-                    emitter.onError(error as Throwable)
-                }
-            });
-
-        }
-
-        fun nearByPeopleObservable() = nearByPeopleObservableRoundDown().mergeWith(nearByPeopleObservableRoundUp()).distinct()
+        fun nearByPeopleObservable() = nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct()
         //we use distinct to ensure that if someone jiplaces in the same place more than once, it doesn't appear
         //as two cards in the observer's
 
@@ -271,8 +201,8 @@ class MyPlacesUserFragment : Fragment() {
                                 .getReference("myplaceusers/$userr/profilepic/$fifteenMinGroupDown")
 
 
-                        fun refUpPicObservable() = Observable.create<ArrayList<String>> { emitter ->
-                            refUpPic.addValueEventListener(object : ValueEventListener {
+                        fun refPicObservable(picRef:DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
+                            picRef.addValueEventListener(object : ValueEventListener {
                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                     var theArr = arrayListOf<String>()
                                     if (dataSnapshot.childrenCount > 0) {
@@ -289,44 +219,29 @@ class MyPlacesUserFragment : Fragment() {
 
                                 }
                             })
-
-
                         }
 
-                        fun refDownPicObservable() = Observable.create<ArrayList<String>> { emitter ->
-                            refDownPic.addValueEventListener(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    var theArr = arrayListOf<String>()
-                                    if (dataSnapshot.childrenCount > 0) {
-                                        for (imageSnapshot in dataSnapshot.children) {
-                                            theArr.add(imageSnapshot.value as String)
-                                            Log.d("user frag", "image url up i got ${imageSnapshot.value}")
-                                        }
-                                        Log.d("the frag", "down ${theArr.toString()}")
-                                    }
-                                    emitter.onNext(theArr)
-                                }
+                        var refDownPicObservable = refPicObservable(refDownPic)
+                        var refUpPicObservable = refPicObservable(refUpPic)
 
-                                override fun onCancelled(p0: DatabaseError) {
-
-                                }
-                            })
-
-
-                        }
-
-
-                        refDownPicObservable().mergeWith(refUpPicObservable()).distinct().subscribe {
+                        refDownPicObservable.mergeWith(refUpPicObservable).distinct().subscribe {
 
                             var wrapper: UserWrapper = UserWrapper.initWithEntityId(userr);
                             wrapper.metaOn();
                             wrapper.onlineOn();
                             var user = wrapper.getModel();
 
-
                             Log.d("username", "${userr}")
                             if (FirebaseAuth.getInstance().uid != userr) {
-                                groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment, theTime, user, userr!!, it))
+                                groupAdapter.add(
+                                    JiplaceUserItem(
+                                        this@MyPlacesUserFragment,
+                                        theTime,
+                                        user,
+                                        userr!!,
+                                        it
+                                    )
+                                )
                             }
                         }
                     }
@@ -435,9 +350,3 @@ class MyPlacesUserFragment : Fragment() {
     }
 
 }
-
-//@foreighnkeyUsers
-//if otheruser exists in  otherMyPlaces:
-//        ondelete = foreighkey.remove(alluserInstances) - 1 instance
-//
-//return (if user exists,  or deleted else return present Userinstance)

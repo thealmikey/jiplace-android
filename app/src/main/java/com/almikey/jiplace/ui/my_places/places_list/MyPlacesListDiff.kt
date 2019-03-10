@@ -1,4 +1,4 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.places_list
 
 import androidx.recyclerview.widget.DiffUtil
 import com.almikey.jiplace.model.MyPlace

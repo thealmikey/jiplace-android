@@ -9,16 +9,18 @@ import com.google.firebase.messaging.RemoteMessage
 import android.content.Context.NOTIFICATION_SERVICE
 import android.app.NotificationManager
 import android.R
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.media.RingtoneManager
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.almikey.jiplace.worker.UserPlacedNotificationWorker
 import android.os.Vibrator
-
-
+import com.almikey.jiplace.ui.call.AudioCallActivity
 
 
 class MyPlaceFirebaseMessagingService : FirebaseMessagingService() {
@@ -68,6 +70,7 @@ class MyPlaceFirebaseMessagingService : FirebaseMessagingService() {
             //we get the caller ID and we can use it to get the other person's SDP stuff
             //and set it as remote
             var callerId:String =  remoteMessage.data.get("caller_id").toString();
+            sendCallJiplaceNotification(callerId)
         }
         // Check if message contains a notification payload.
         if (remoteMessage.notification != null) {
@@ -77,39 +80,34 @@ class MyPlaceFirebaseMessagingService : FirebaseMessagingService() {
 //        sendJiplaceNotification(message)
     }
 
-//    fun sendJiplaceNotification(remoteMessage: RemoteMessage) {
-//
-//        val notificationBuilder = NotificationCompat.Builder(this, "channel_id")
-//            .setContentTitle(remoteMessage.notification!!.title!!)
-//            .setContentText(remoteMessage.notification!!.body!!)
-//            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-//            .setStyle(NotificationCompat.BigTextStyle())
-//            .setSmallIcon(android.R.drawable.btn_star_big_on)
-//            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-//            .setAutoCancel(true)
-//
-//        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//
-//        notificationManager.notify(0, notificationBuilder.build())
-//    }
 
 
-    fun startCallNotification() {
-        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        val ringtone = RingtoneManager.getRingtone(this, notification)
-        ringtone.play()
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        val vibrationCycle = longArrayOf(0, 1000, 1000)
-        if (vibrator.hasVibrator()) {
-            vibrator.vibrate(vibrationCycle, 1)
+    fun sendCallJiplaceNotification(callerId: String) {
+        val arguments = Bundle().apply {
+            putBoolean("received", true)
+            putString("other_user_to_call",callerId )
         }
+        val answerIntent = Intent(this, AudioCallActivity::class.java).apply {
+            putExtras(arguments)
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, answerIntent, 0)
+        val notificationBuilder = NotificationCompat.Builder(this, "channel_id")
+            .setContentTitle("Call")
+            .setContentText("call from Jiplace")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setStyle(NotificationCompat.BigTextStyle())
+            .setSmallIcon(android.R.drawable.btn_star_big_on)
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
+
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        notificationManager.notify(0, notificationBuilder.build())
     }
-    fun stopCallNotification() {
-        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        val ringtone = RingtoneManager.getRingtone(this, notification)
-        ringtone.stop()
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        vibrator.cancel()
-    }
+
+
+
 
 }

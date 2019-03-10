@@ -38,7 +38,7 @@ class MyLocationWorker(context: Context, params: WorkerParameters) : Worker(cont
                 var locationList: List<Location> = currLocRx.observeLocation.subscribeOn(AndroidSchedulers.mainThread())
                     .observeOn(Schedulers.io())
                     .distinct().take(4).blockingIterable().toList()
-                var firstLocation: MyLocation = MyLocation(0.0f, 0.0f)
+                var firstLocation: MyLocation = MyLocation(0.0, 0.0)
 
                 for (i in locationList) {
                     firstLocation.longitude += i.longitude.toFloat()
@@ -48,7 +48,7 @@ class MyLocationWorker(context: Context, params: WorkerParameters) : Worker(cont
                     MyLocation(firstLocation.longitude / locationList.size, firstLocation.latitude / locationList.size)
 
                 Log.d("got location ", " from work ${location.latitude}-${location.longitude}")
-                var newLocation = MyLocation(location.latitude.toFloat(), location.longitude.toFloat())
+                var newLocation = MyLocation(location.latitude, location.longitude)
                 var newPlace: MyPlace = thePlace.copy(location = newLocation, workSync = true)
                 CompletableFromAction {
                     myPlacesDao.update(newPlace)

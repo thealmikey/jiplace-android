@@ -28,7 +28,7 @@ class PlacePickerWorker(context: Context, params: WorkerParameters) : Worker(con
                 .observeOn(Schedulers.io()).blockingFirst()
             CompletableFromAction {
                 var newPlace =
-                    thePlace.copy(location = MyLocation(theLon!!.toFloat(), theLat!!.toFloat()), workSync = true)
+                    thePlace.copy(location = MyLocation(theLon!!.toDouble(), theLat!!.toDouble()), workSync = true)
                 myPlacesRepo.update(newPlace)
             }.subscribeOn(Schedulers.io()).subscribe {
                 Log.d("jiplace other", "n putting a location in jiplace other")

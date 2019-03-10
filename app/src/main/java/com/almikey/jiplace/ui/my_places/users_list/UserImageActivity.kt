@@ -1,4 +1,4 @@
-package com.almikey.jiplace.ui.my_places
+package com.almikey.jiplace.ui.my_places.users_list
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -21,8 +21,11 @@ class UserImageActivity : AppCompatActivity() {
         // fragments, so use supportFragmentManager.
         val b = this.intent.extras
         val mArray = b!!.getStringArray("user_image_urls")
-        mUserPictureCollectionPagerAdapter = UserPictureCollectionPagerAdapter(supportFragmentManager,
-            mArray.toCollection(ArrayList()))
+        mUserPictureCollectionPagerAdapter =
+            UserPictureCollectionPagerAdapter(
+                supportFragmentManager,
+                mArray.toCollection(ArrayList())
+            )
         mViewPager = findViewById(R.id.user_image_pager)
         mViewPager.adapter = mUserPictureCollectionPagerAdapter
     }
