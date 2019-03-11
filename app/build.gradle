@@ -91,6 +91,10 @@ android {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
     testOptions {
+
+        execution 'ANDROID_TEST_ORCHESTRATOR'
+        animationsDisabled true
+
         unitTests {
             includeAndroidResources = true
         }

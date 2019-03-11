@@ -3,11 +3,7 @@
           xmlns:dist="http://schemas.android.com/apk/distribution"
           xmlns:tools="http://schemas.android.com/tools"
           package="com.almikey.jiplace">
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality.
-    -->
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <dist:module dist:instant="false"/>
@@ -16,35 +12,35 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission
-        android:name="android.permission.GET_ACCOUNTS"
-        tools:node="remove" />
+            android:name="android.permission.GET_ACCOUNTS"
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.RECEIVE_SMS"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.READ_SMS"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.SEND_SMS"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.WRITE_SMS"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.RECEIVE_WAP_PUSH"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.RECEIVE_MMS"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.READ_CALL_LOG"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.WRITE_CALL_LOG"
-            tools:node="remove" />
+            tools:node="remove"/>
     <uses-permission
             android:name="android.permission.PROCESS_OUTGOING_CALLS"
-            tools:node="remove" />
+            tools:node="remove"/>
 
 
     <application
@@ -56,36 +52,28 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:node="merge">
+        <uses-library
+                android:name="android.test.runner"
+                android:required="false"/>
+
         <activity android:name=".ui.my_places.users_list.UserImageActivity">
         </activity>
         <activity android:name=".ui.activity.CrunchyCalendary">
         </activity>
         <activity android:name=".ui.call.AudioCallActivity">
         </activity>
-        <uses-library
-                android:name="android.test.runner"
-                android:required="false"/>
-        <!--
-             The API key for Google Maps-based APIs is defined as a string resource.
-             (See the file "res/values/google_maps_api.xml").
-             Note that the API key is linked to the encryption key used to sign the APK.
-             You need a different API key for each encryption key, including the release key that is used to
-             sign the APK for publishing.
-             You can define the keys for the debug and release targets in src/debug/ and src/release/.
-        -->
-
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value="${mapApiKeyValue}"/>
-         <activity
-         android:name=".ui.map.JiplaceMapsActivity"
-         android:label="jiplace maps">
-         </activity>
+        <activity
+                android:name=".ui.map.JiplaceMapsActivity"
+                android:label="jiplace maps">
+        </activity>
         <activity
                 android:name=".MainActivity"
                 android:noHistory="false">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
