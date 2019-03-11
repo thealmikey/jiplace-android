@@ -31,6 +31,7 @@ import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.ui.activity.CrunchyCalendary
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
+import com.almikey.jiplace.util.LocationUtil.locationSettingsObservable
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
@@ -105,72 +106,21 @@ class HomeFragment : Fragment() {
         FirebaseAuth.AuthStateListener { firebaseAuth ->
             val firebaseUser = firebaseAuth.currentUser
             if (firebaseUser == null) {
-                //if null we will create a chatsdk user account
                 anonymousLogin()
-
             } else {
                 NM.auth().authenticateWithCachedToken()
                 ChatSDK.core().goOnline()
 
-                var constraint: Constraints =
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 deleteThreadsFromOtherSide(scopeProvider)
             }
         }
 
     val myPlacesViewModel: MyPlaceViewModel by viewModel()
 
-    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var mLocationCallback: LocationCallback
+
     val REQUEST_CHECK_SETTINGS = 5
 
-    fun createLocationRequest(): LocationRequest {
-        val locationRequest = LocationRequest.create()?.apply {
-            interval = 1000
-            fastestInterval = 500
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-        return locationRequest!!
-    }
-
-    fun getCurrentLocationSettings(locationRequest: LocationRequest, context: Context): Task<LocationSettingsResponse> {
-        var builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        var client: SettingsClient = LocationServices.getSettingsClient(context)
-        var task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-        return task
-    }
-
-
-    fun locationSettingsObservable(): Observable<Boolean> {
-        return Observable.create<Boolean> { emitter ->
-            var theTask = getCurrentLocationSettings(createLocationRequest(), activity as Activity)
-            theTask.addOnSuccessListener {
-                emitter.onNext(true)
-                emitter.onComplete()
-            }
-            var theFail = theTask.addOnFailureListener { exception ->
-                if (exception is ResolvableApiException) {
-                    // Location settings are not satisfied, but this can be fixed
-                    // by showing the user a dialog.
-                    try {
-                        // Show the dialog by calling startResolutionForResult(),
-                        // and check the result in onActivityResult().
-                        emitter.onNext(false)
-
-                        exception.startResolutionForResult(activity as Activity, REQUEST_CHECK_SETTINGS)
-                        Log.d("yellow", "bella")
-                    } catch (sendEx: IntentSender.SendIntentException) {
-                        // Ignore the error.
-                    }
-                }
-            }
-            theFail.addOnCompleteListener {
-                emitter.onNext(true)
-                emitter.onComplete()
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -244,7 +194,7 @@ class HomeFragment : Fragment() {
                     "android.Manifest.permission.ACCESS_FINE_LOCATION"
                 )
             if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-                locationSettingsObservable().subscribe {
+                locationSettingsObservable(this.activity as Activity, REQUEST_CHECK_SETTINGS).subscribe {
                     if (it) {
                         askForHint()
                     }
@@ -255,7 +205,7 @@ class HomeFragment : Fragment() {
                     arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION),
                     1
                 )
-                locationSettingsObservable()
+                locationSettingsObservable(this.activity as Activity, REQUEST_CHECK_SETTINGS)
                     .subscribe {
                         if (it) {
                             askForHint()
