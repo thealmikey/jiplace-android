@@ -3,18 +3,17 @@ package com.almikey.jiplace.ui.my_places.places_list
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.koin.standalone.KoinComponent
-import android.widget.Button
-import com.squareup.picasso.Picasso
-import de.hdodenhof.circleimageview.CircleImageView
-import java.io.File
 
 
 class MyPlaceViewHolder(var context: Fragment, var view: View) : KoinComponent

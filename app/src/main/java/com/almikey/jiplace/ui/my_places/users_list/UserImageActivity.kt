@@ -1,10 +1,9 @@
 package com.almikey.jiplace.ui.my_places.users_list
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.almikey.jiplace.R
-
 
 
 class UserImageActivity : AppCompatActivity() {

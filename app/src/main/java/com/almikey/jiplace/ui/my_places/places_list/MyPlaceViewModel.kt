@@ -8,5 +8,6 @@ class MyPlaceViewModel(val myPlacesRepositoryImpl: MyPlacesRepositoryImpl) : Vie
     var myPlaces = myPlacesRepositoryImpl.findAll()
 
     fun addPlace(myPlace: MyPlace) = myPlacesRepositoryImpl.addMyPlace(myPlace)
-
+    fun update(myPlace:MyPlace)= myPlacesRepositoryImpl.update(myPlace)
+    fun findByUuid(uuid:String) = myPlacesRepositoryImpl.findByUuid(uuid)
 }

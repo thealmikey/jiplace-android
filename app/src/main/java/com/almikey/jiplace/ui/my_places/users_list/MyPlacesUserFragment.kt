@@ -3,8 +3,6 @@ package com.almikey.jiplace.ui.my_places.users_list
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,11 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.EmptyResultSetException
-import co.chatsdk.core.dao.User
-import co.chatsdk.core.dao.Thread
-import co.chatsdk.core.session.ChatSDK
 import co.chatsdk.firebase.wrappers.UserWrapper
-
 import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
@@ -26,34 +20,23 @@ import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
 import com.almikey.jiplace.service.MyPlaceSearchService.MyPlaceSearchServiceGeoFireImpl.findNearByPeopleObservable
-import com.almikey.jiplace.ui.call.AudioCallActivity
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
-import com.almikey.myplace.service.MyPlacesDao
-import com.firebase.geofire.GeoFire
-import com.firebase.geofire.GeoLocation
-import com.firebase.geofire.GeoQueryEventListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.squareup.picasso.Picasso
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.jiplaces_users_inplace_user_item.view.*
 import org.koin.android.ext.android.inject
 
 
 class MyPlacesUserFragment : Fragment() {
 
     val mOtherUserDao: OtherUserDao by inject()
-    val myPlacesDao: MyPlacesDao by inject()
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
     public val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
 

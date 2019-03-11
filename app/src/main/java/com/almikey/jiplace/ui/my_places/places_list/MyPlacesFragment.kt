@@ -1,58 +1,54 @@
 package com.almikey.jiplace.ui.my_places.places_list
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.*
+import android.widget.EditText
+import android.widget.Toast
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import co.chatsdk.core.session.NM
-import com.almikey.jiplace.model.MyPlace
-import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
-import com.uber.autodispose.autoDisposable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
-import android.widget.Toast
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Environment
-import android.widget.EditText
 import androidx.work.*
 import co.chatsdk.core.dao.DaoCore
 import co.chatsdk.core.interfaces.ThreadType
 import co.chatsdk.core.session.ChatSDK
+import co.chatsdk.core.session.NM
 import co.chatsdk.firebase.wrappers.UserWrapper
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
+import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.model.MyPlaceProfilePic
 import com.almikey.jiplace.model.MyPlaceUserShared
-import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.FilePickerUtil
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.UploadMyPlaceImageWorker
-import com.almikey.myplace.service.MyPlacesDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
+import com.uber.autodispose.autoDisposable
 import io.reactivex.Completable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
+import java.util.*
 
 
 class MyPlacesFragment : Fragment(), KoinComponent {
 
-    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
-    val myPlacesDao: MyPlacesDao by inject()
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
 
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
@@ -158,7 +154,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     @SuppressLint("AutoDispose")
     fun deletePlaceFromDatabase(info:ContextMenuRecyclerView.RecyclerViewContextMenuInfo){
         Log.d("delete", "context menu")
-        myPlacesRepoImpl.findByUuid(myPlaces[info.position].uuidString)
+        myPlacesViewModel.findByUuid(myPlaces[info.position].uuidString)
             .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe { thePlace ->
                 /**
                  *      we set a flag in the database instead of deleting the place someone
@@ -167,7 +163,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                  *      on firebase
                  */
                 var newPlace = thePlace.copy(deletedStatus = "pending")
-                myPlacesRepoImpl.update(newPlace)
+                myPlacesViewModel.update(newPlace)
 
                 var theFbId = firebaseAuth.uid!!
                 var ref: DatabaseReference = FirebaseDatabase
@@ -192,7 +188,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                 ref.updateChildren(childUpdates).addOnSuccessListener {
                     CompletableFromAction {
                         var newPlace = thePlace.copy(deletedStatus = "true")
-                        myPlacesDao.update(newPlace)
+                        myPlacesViewModel.update(newPlace)
                         deleteOtherUsersFromDeletedPlace(thePlace.uuidString)
                     }.subscribeOn(Schedulers.io()).subscribe()
                 }
@@ -279,12 +275,12 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
             CompletableFromAction {
-                var thePlace = myPlacesRepoImpl.findByUuid(theUuid)
+                var thePlace = myPlacesViewModel.findByUuid(theUuid)
                     .subscribeOn(Schedulers.io()).blockingFirst()
                 var newPlace = thePlace.copy(hint = theHintStr)
 
                 @SuppressLint("AutoDispose")
-                var b = CompletableFromAction { myPlacesRepoImpl.update(newPlace)
+                var b = CompletableFromAction { myPlacesViewModel.update(newPlace)
                     var thePlaces =  myPlaces.toMutableList()
                     thePlaces[position] = newPlace
                     myPlacesAdapter.myplaces = thePlaces
@@ -335,12 +331,12 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
     @SuppressLint("AutoDispose")
     fun updatePicInDatabase(uri:String,theUuid:String,imageDataLocation:String){
-        myPlacesRepoImpl.findByUuid(theUuid).take(1)
+        myPlacesViewModel.findByUuid(theUuid).take(1)
             .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
                 var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
                 //change item in db and change the adapter
                 Completable.fromAction {
-                    myPlacesRepoImpl.update(newPlace)
+                    myPlacesViewModel.update(newPlace)
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
                     myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
                         .autoDisposable(scopeProvider)

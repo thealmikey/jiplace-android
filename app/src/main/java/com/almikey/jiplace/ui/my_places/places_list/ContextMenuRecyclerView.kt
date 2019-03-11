@@ -1,9 +1,9 @@
 package com.almikey.jiplace.ui.my_places.places_list
 
 import android.content.Context
-import androidx.recyclerview.widget.RecyclerView
 import android.view.ContextMenu
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 
 
 class ContextMenuRecyclerView(context: Context) : RecyclerView(context) {
