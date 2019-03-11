@@ -4,24 +4,23 @@ import android.content.Context
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.runBlocking
-import org.koin.android.ext.android.inject
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 import java.util.*
 
 class TimePickerWorker(context: Context, params: WorkerParameters) : Worker(context, params), KoinComponent {
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
 
     val uuidKey = inputData.getString("UuidKey")
     val theDate = inputData.getLong("theDate", 0)
     override fun doWork(): Result {
         runBlocking {
             Log.d("saving time", "in worker this date $theDate")
-            var thePlace = myPlacesRepo.findByUuid(uuidKey!!)
+            var thePlace = myPlacesRepoImpl.findByUuid(uuidKey!!)
                 .observeOn(Schedulers.io()).blockingFirst()
             CompletableFromAction {
                 var newPlace = thePlace.copy(
@@ -29,7 +28,7 @@ class TimePickerWorker(context: Context, params: WorkerParameters) : Worker(cont
                     timeRoundDown = timeMinuteGroupDown(theDate, 15),
                     timeRoundUp = timeMinuteGroupUp(theDate, 15)
                 )
-                myPlacesRepo.update(newPlace)
+                myPlacesRepoImpl.update(newPlace)
             }.subscribeOn(Schedulers.io()).subscribe {
                 Log.d("jiplace other", "n putting a date in jiplace other")
             }

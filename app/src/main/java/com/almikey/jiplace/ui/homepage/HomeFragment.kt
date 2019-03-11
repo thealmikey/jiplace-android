@@ -28,7 +28,7 @@ import com.afollestad.materialdialogs.customview.getCustomView
 
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.ui.activity.CrunchyCalendary
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
@@ -120,7 +120,7 @@ class HomeFragment : Fragment() {
 
     val myPlacesViewModel: MyPlaceViewModel by viewModel()
 
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var mLocationCallback: LocationCallback
     val REQUEST_CHECK_SETTINGS = 5

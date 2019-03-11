@@ -4,7 +4,9 @@ import androidx.room.Room
 import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
+import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalService
+import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalServiceRoomImpl
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.CurrentLocationRx
 import com.almikey.myplace.service.MyPlacesDao
@@ -29,9 +31,12 @@ class KoinModules {
             single<OtherUserDao>{
                 get<MyPlacesRoomDatabase>().otherUserDao()
             }
+            single<MyPlaceLocalService> {
+                MyPlaceLocalServiceRoomImpl()
+            }
             // single instance of HelloRepository
-            factory<MyPlacesRepository> {
-                MyPlacesRepository(androidApplication(),get())
+            single<MyPlacesRepositoryImpl> {
+                MyPlacesRepositoryImpl(get())
             }
             // MyViewModel ViewModel
             viewModel { MyPlaceViewModel(get()) }

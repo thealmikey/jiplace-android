@@ -11,29 +11,20 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.ui.map.JiplaceMapsActivity
 import com.almikey.jiplace.util.TimePickerFragment
 import com.almikey.jiplace.worker.PlacePickerWorker
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.Autocomplete
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
-import com.uber.autodispose.autoDisposable
 import com.uber.autodispose.lifecycle.autoDisposable
 import io.reactivex.Observable
 
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_crunchy_calendary.*
-import ru.cleverpumpkin.calendar.CalendarDate
 import ru.cleverpumpkin.calendar.CalendarView
-import java.text.SimpleDateFormat
 import org.koin.android.ext.android.inject
 
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 class CrunchyCalendary : AppCompatActivity() {
@@ -48,7 +39,7 @@ class CrunchyCalendary : AppCompatActivity() {
 
 
     lateinit var theMainDate: Date;
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     lateinit var theUUId:String
     var theLateTime: Date? = null
 
@@ -66,9 +57,9 @@ class CrunchyCalendary : AppCompatActivity() {
             theUUId = savedInstanceState.getString("theUuid")
         }
         Observable.create<Unit> {
-            myPlacesRepo.addMyPlace(MyPlace(uuidString = theUUId))
+            myPlacesRepoImpl.addMyPlace(MyPlace(uuidString = theUUId))
         }.flatMap { _ ->
-            myPlacesRepo.findByUuid(theUUId).toObservable()
+            myPlacesRepoImpl.findByUuid(theUUId).toObservable()
         }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread()).take(1)
             .autoDisposable(scopeProvider)
@@ -94,7 +85,7 @@ class CrunchyCalendary : AppCompatActivity() {
                 setArguments(theBundle)
             }.show(supportFragmentManager, "timePicker")
             submitSelectedDate.isEnabled = true
-            myPlacesRepo.findByUuid(theUUId)
+            myPlacesRepoImpl.findByUuid(theUUId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .takeUntil { theLateTime != null && it.time != theLateTime }

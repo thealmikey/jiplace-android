@@ -32,7 +32,7 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.model.MyPlaceProfilePic
 import com.almikey.jiplace.model.MyPlaceUserShared
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.FilePickerUtil
@@ -43,17 +43,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
-import io.reactivex.subjects.PublishSubject
 
 
 class MyPlacesFragment : Fragment(), KoinComponent {
 
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     val myPlacesDao: MyPlacesDao by inject()
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
 
@@ -160,7 +158,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     @SuppressLint("AutoDispose")
     fun deletePlaceFromDatabase(info:ContextMenuRecyclerView.RecyclerViewContextMenuInfo){
         Log.d("delete", "context menu")
-        myPlacesRepo.findByUuid(myPlaces[info.position].uuidString)
+        myPlacesRepoImpl.findByUuid(myPlaces[info.position].uuidString)
             .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe { thePlace ->
                 /**
                  *      we set a flag in the database instead of deleting the place someone
@@ -169,7 +167,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                  *      on firebase
                  */
                 var newPlace = thePlace.copy(deletedStatus = "pending")
-                myPlacesRepo.update(newPlace)
+                myPlacesRepoImpl.update(newPlace)
 
                 var theFbId = firebaseAuth.uid!!
                 var ref: DatabaseReference = FirebaseDatabase
@@ -281,12 +279,12 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
             CompletableFromAction {
-                var thePlace = myPlacesRepo.findByUuid(theUuid)
+                var thePlace = myPlacesRepoImpl.findByUuid(theUuid)
                     .subscribeOn(Schedulers.io()).blockingFirst()
                 var newPlace = thePlace.copy(hint = theHintStr)
 
                 @SuppressLint("AutoDispose")
-                var b = CompletableFromAction { myPlacesRepo.update(newPlace)
+                var b = CompletableFromAction { myPlacesRepoImpl.update(newPlace)
                     var thePlaces =  myPlaces.toMutableList()
                     thePlaces[position] = newPlace
                     myPlacesAdapter.myplaces = thePlaces
@@ -337,12 +335,12 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
     @SuppressLint("AutoDispose")
     fun updatePicInDatabase(uri:String,theUuid:String,imageDataLocation:String){
-        myPlacesRepo.findByUuid(theUuid).take(1)
+        myPlacesRepoImpl.findByUuid(theUuid).take(1)
             .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
                 var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
                 //change item in db and change the adapter
                 Completable.fromAction {
-                    myPlacesRepo.update(newPlace)
+                    myPlacesRepoImpl.update(newPlace)
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
                     myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
                         .autoDisposable(scopeProvider)

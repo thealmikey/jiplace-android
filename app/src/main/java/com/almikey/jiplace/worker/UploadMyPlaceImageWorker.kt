@@ -4,20 +4,16 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.MediaStore
-import android.util.Log
 import androidx.room.Room
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.almikey.jiplace.database.MyPlacesRoomDatabase
-import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlaceProfilePic
-import com.almikey.jiplace.repository.MyPlacesRepository
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
-import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.runBlocking
 import org.koin.standalone.KoinComponent
@@ -29,7 +25,7 @@ class UploadMyPlaceImageWorker(context: Context, params: WorkerParameters) : Wor
         .build()
     val myPlacePicDao = myPlacesDb.myPlacePicDao()
 
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
 
     val uuidKey = inputData.getString("UuidKey")
     val theLocationMap = inputData.keyValueMap.get("location")
@@ -59,7 +55,7 @@ class UploadMyPlaceImageWorker(context: Context, params: WorkerParameters) : Wor
             storageRef.putBytes(data).addOnSuccessListener {
 
                 it.metadata?.reference?.downloadUrl?.addOnSuccessListener { theFirebaseUrl ->
-                    myPlacesRepo.findByUuid(uuidKey!!).take(1)
+                    myPlacesRepoImpl.findByUuid(uuidKey!!).take(1)
                         .subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe {
                             var newPlace = it.copy(
                                 profile = MyPlaceProfilePic(
@@ -67,7 +63,7 @@ class UploadMyPlaceImageWorker(context: Context, params: WorkerParameters) : Wor
                                     firebasePicUrl = theFirebaseUrl.toString()
                                 )
                             )
-                            myPlacesRepo.update(newPlace)
+                            myPlacesRepoImpl.update(newPlace)
                         }
 //                val childUpdates = HashMap<String, Any?>()
 //                childUpdates["myplaceusers/$theFbId/profilepic/$fifteenMinGroupUp"] = theFirebaseUrl.toString()

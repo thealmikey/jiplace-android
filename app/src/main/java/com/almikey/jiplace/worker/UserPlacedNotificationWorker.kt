@@ -4,37 +4,30 @@ import android.app.NotificationManager
 import android.content.Context
 import android.media.RingtoneManager
 import android.os.Bundle
-import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavDeepLinkBuilder
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.repository.MyPlacesRepository
-import com.google.firebase.messaging.RemoteMessage
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.internal.operators.completable.CompletableFromAction
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.anko.Android
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
-import java.util.*
 
 class UserPlacedNotificationWorker(context: Context, params: WorkerParameters) : Worker(context, params),
     KoinComponent {
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     val theLongitude = inputData.getString("theLongitude")?.toFloat()!!
     val theLatitude = inputData.getString("theLatitude")?.toFloat()!!
     val theTime = inputData.getString("theTime")?.toLong()!!
 
     override fun doWork(): Result {
         runBlocking {
-            var myPlaces = myPlacesRepo.findByLocationData(theLatitude, theLongitude, theTime)
+            var myPlaces = myPlacesRepoImpl.findByLocationData(theLatitude, theLongitude, theTime)
                 .subscribeOn(Schedulers.io()).blockingFirst()
             myPlaces.forEach {
                 sendJiplaceNotification(it)

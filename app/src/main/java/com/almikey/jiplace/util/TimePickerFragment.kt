@@ -11,18 +11,15 @@ import androidx.fragment.app.DialogFragment
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.almikey.jiplace.repository.MyPlacesRepository
-import com.almikey.jiplace.worker.MyLocationWorker
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.worker.TimePickerWorker
-import io.reactivex.internal.operators.completable.CompletableFromAction
-import io.reactivex.schedulers.Schedulers
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TimePickerFragment() : DialogFragment(), TimePickerDialog.OnTimeSetListener {
 
-    val myPlacesRepo: MyPlacesRepository by inject()
+    val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
     var theDate: String? = null
     var theUuid: String? = null
 
@@ -54,10 +51,10 @@ class TimePickerFragment() : DialogFragment(), TimePickerDialog.OnTimeSetListene
         var theTimeStr = theTime.time.toString()
         Log.d("a new day","celine $theTime")
 
-//         myPlacesRepo.findByUuid(theUuid!!)
+//         myPlacesRepoImpl.findByUuid(theUuid!!)
 //            .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
 //                var newPlace = it.copy(time = theTime,timeRoundDown = timeMinuteGroupDown(theTime.time,15),timeRoundUp = timeMinuteGroupUp(theTime.time,15))
-//                myPlacesRepo.update(newPlace)
+//                myPlacesRepoImpl.update(newPlace)
 //                Log.d("jiplace other","n putting a date in jiplace other")
 //            }
 

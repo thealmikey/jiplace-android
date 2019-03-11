@@ -1,11 +1,9 @@
-package com.almikey.jiplace.service.MyPlaceService
+package com.almikey.jiplace.service.MyPlaceLocalService
 
 import com.almikey.jiplace.model.MyPlace
 import org.junit.Test
 
-import org.junit.Assert.*
-
-class MyPlaceServiceImplTest {
+class MyPlaceLocalServiceRoomImplTest {
 
     var myPlace = MyPlace()
 

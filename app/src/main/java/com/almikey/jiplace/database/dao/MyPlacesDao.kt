@@ -33,7 +33,6 @@ interface MyPlacesDao {
     @Update
     fun update(vararg myPlace:MyPlace)
 
-
     @Delete
     fun delete(myPlace: MyPlace)
 }
