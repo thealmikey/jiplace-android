@@ -20,7 +20,7 @@ import co.chatsdk.firebase.FirebaseNetworkAdapter
 import com.google.android.libraries.places.api.Places
 
 
-class MainApplication : MultiDexApplication() {
+class JiPlace : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
