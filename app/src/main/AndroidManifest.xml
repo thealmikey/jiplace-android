@@ -56,15 +56,17 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:node="merge">
+        <uses-library
+                android:name="android.test.runner"
+                android:required="false"/>
+
         <activity android:name=".ui.my_places.users_list.UserImageActivity">
         </activity>
         <activity android:name=".ui.activity.CrunchyCalendary">
         </activity>
         <activity android:name=".ui.call.AudioCallActivity">
         </activity>
-        <uses-library
-                android:name="android.test.runner"
-                android:required="false"/>
+
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

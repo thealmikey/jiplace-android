@@ -216,17 +216,6 @@ class HomeFragment : Fragment() {
                             )
                                 .build()
                             WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-//                            WorkManager.getInstance().getWorkInfoByIdLiveData(locWorker.id)
-//                                .observe(this@HomeFragment, Observer { workInfo ->
-//                                    // Do something with the status
-//                                    if (workInfo != null && workInfo.state.isFinished) {
-//                                        // ...
-//                                        Log.d("location worker", "i got your location and completer")
-//                                    }
-//                                    if (workInfo != null && !workInfo.state.isFinished) {
-//                                        Log.d("location worker", "am getting your location priss")
-//                                    }
-//                                })
                         })
                 }
 
