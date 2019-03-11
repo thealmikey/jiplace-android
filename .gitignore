@@ -10,6 +10,9 @@
 /build
 /captures
 .externalNativeBuild
+
+/app/build/release/
+/app/build/debug/
 /app/build/generated/source/buildConfig/debug/
 /app/build/generated/source/apt/debug/
 /app/build/generated/source/navigation-args/debug/
