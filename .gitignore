@@ -89,4 +89,5 @@ gradlew
 gradlew.bat
 settings.gradle
 !/app/google-services.json
-
+/app/debug/
+/app/release/
