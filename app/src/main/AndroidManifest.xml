@@ -66,7 +66,7 @@
                 android:name="com.google.android.geo.API_KEY"
                 android:value="${mapApiKeyValue}"/>
         <activity
-                android:name=".ui.map.JiplaceMapsActivity"
+                android:name=".ui.map.MyPlaceMapsActivity"
                 android:label="jiplace maps">
         </activity>
         <activity

@@ -136,7 +136,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         return when (item.itemId) {
             R.id.edit_jiplace_description -> {
                 Log.d("edit", "context menu")
-                getHintAfterJiplaceOther(myPlaces[info.position].uuidString, info.position)
+                editMyPlaceHint(myPlaces[info.position].uuidString, info.position)
                 Toast.makeText(this.context, "edit ${info.position}", Toast.LENGTH_LONG).show()
                 true
             }
@@ -263,37 +263,19 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     }
 
 
-    fun getHintAfterJiplaceOther(theUuid: String, position: Int) {
+    fun editMyPlaceHint(theUuid: String, position: Int) {
         lateinit var theHintStr: String
         var dialog = MaterialDialog(activity as Activity).show {
             customView(R.layout.jiplace_description_hint)
         }
         val customView = dialog.getCustomView()
         var theText = customView?.findViewById<EditText>(R.id.jiplaceDescription)
+        theText!!.setText(myPlaces[position].hint)
         theText?.text.toString()
 
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
-            CompletableFromAction {
-                var thePlace = myPlacesViewModel.findByUuid(theUuid)
-                    .subscribeOn(Schedulers.io()).blockingFirst()
-                var newPlace = thePlace.copy(hint = theHintStr)
-
-                @SuppressLint("AutoDispose")
-                var b = CompletableFromAction { myPlacesViewModel.update(newPlace)
-                    var thePlaces =  myPlaces.toMutableList()
-                    thePlaces[position] = newPlace
-                    myPlacesAdapter.myplaces = thePlaces
-                }
-                    .subscribeOn(Schedulers.io()).subscribe()
-            }.observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .autoDisposable(scopeProvider)
-                .subscribe {
-
-                    myPlacesAdapter.notifyItemChanged(position)
-                    Log.d("jiplace other", "n putting a location in jiplace other")
-                }
+            savePlaceWithHint(theUuid,position,theHintStr)
         }
     }
 
@@ -374,6 +356,29 @@ class MyPlacesFragment : Fragment(), KoinComponent {
             )
                 .setConstraints(constraint).build()
         WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
+    }
+
+    fun savePlaceWithHint(placeUuid:String,placePosition:Int,hintText:String){
+        CompletableFromAction {
+            var thePlace = myPlacesViewModel.findByUuid(placeUuid)
+                .subscribeOn(Schedulers.io()).blockingFirst()
+            var newPlace = thePlace.copy(hint = hintText)
+
+            @SuppressLint("AutoDispose")
+            var b = CompletableFromAction { myPlacesViewModel.update(newPlace)
+                var thePlaces =  myPlaces.toMutableList()
+                thePlaces[placePosition] = newPlace
+                myPlacesAdapter.myplaces = thePlaces
+            }
+                .subscribeOn(Schedulers.io()).subscribe()
+        }.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .autoDisposable(scopeProvider)
+            .subscribe {
+
+                myPlacesAdapter.notifyItemChanged(placePosition)
+                Log.d("jiplace other", "n putting a location in jiplace other")
+            }
     }
 
 }

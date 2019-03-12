@@ -12,7 +12,7 @@ import androidx.work.WorkManager
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
-import com.almikey.jiplace.ui.map.JiplaceMapsActivity
+import com.almikey.jiplace.ui.map.MyPlaceMapsActivity
 import com.almikey.jiplace.util.TimePickerFragment
 import com.almikey.jiplace.worker.PlacePickerWorker
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
@@ -77,7 +77,7 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
 
         submitSelectedDate.setOnClickListener {
             submitSelectedDate.isEnabled = false
-            var mapIntent: Intent = Intent(this, JiplaceMapsActivity::class.java)
+            var mapIntent: Intent = Intent(this, MyPlaceMapsActivity::class.java)
             startActivityForResult(mapIntent, 5);
 
         }

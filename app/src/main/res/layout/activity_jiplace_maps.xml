@@ -22,7 +22,7 @@
           android:layout_height="0dp"
           android:layout_weight=".90"
           android:id="@+id/map"
-          tools:context=".ui.map.JiplaceMapsActivity"
+          tools:context=".ui.map.MyPlaceMapsActivity"
           android:name="com.google.android.gms.maps.SupportMapFragment"/>
    <LinearLayout
            android:orientation="horizontal"
