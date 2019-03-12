@@ -139,7 +139,7 @@ class HomeFragment : Fragment() {
         jiPlaceNow.setOnClickListener {
             var theUUId = UUID.randomUUID().toString()
             fun askForHint(): Unit {
-                lateinit var theRes: String
+                lateinit var hintText: String
                 var dialog = MaterialDialog(activity as Activity).show {
                     customView(R.layout.jiplace_description_hint)
                 }
@@ -148,34 +148,12 @@ class HomeFragment : Fragment() {
                 theText?.text.toString()
 
                 dialog.negativeButton {
-                    CompletableFromAction {
-                        myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId))
-                    }.subscribeOn(Schedulers.io())
-                        .autoDisposable(scopeProvider)
-                        .subscribe({
-                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
-                                Data.Builder()
-                                    .putString("UuidKey", theUUId).build()
-                            )
-                                .build()
-                            WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-                        })
+                    savePlaceNowWithoutHintText(theUUId)
                 }
 
                 dialog.positiveButton {
-                    theRes = theText?.text.toString()
-                    CompletableFromAction {
-                        myPlacesViewModel.addPlace(MyPlace(uuidString = theUUId, hint = theRes))
-                    }.subscribeOn(Schedulers.io())
-                        .autoDisposable(scopeProvider)
-                        .subscribe({
-                            var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
-                                Data.Builder()
-                                    .putString("UuidKey", theUUId).build()
-                            )
-                                .build()
-                            WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-                        }, { err -> Log.d("the error", "many of horror:${err.message}") })
+                    hintText = theText?.text.toString()
+                    savePlaceNowWithHintText(theUUId,hintText)
                 }
 
                 return Unit
@@ -216,11 +194,11 @@ class HomeFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 2 && resultCode == RESULT_OK) {
             val theUuid = data?.getStringExtra("theUuid")
-            getHintAfterJiplaceOther(theUuid!!)
+            promptForHintAfterJiplaceOther(theUuid!!)
         }
     }
 
-    fun getHintAfterJiplaceOther(theUuid: String) {
+    fun promptForHintAfterJiplaceOther(theUuid: String) {
         lateinit var theHintStr: String
         var dialog = MaterialDialog(activity as Activity).show {
             customView(R.layout.jiplace_description_hint)
@@ -239,6 +217,7 @@ class HomeFragment : Fragment() {
             Log.d("i went", "past hint picker worker")
             WorkManager.getInstance().beginWith(hintPickWorker).then(firebaseWorker).enqueue()
         }
+
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
             var hintPickWorker = OneTimeWorkRequestBuilder<HintPickerWorker>().addTag("hint-picker").setInputData(
@@ -249,6 +228,36 @@ class HomeFragment : Fragment() {
             Log.d("i went", "past hint picker worker")
             WorkManager.getInstance().beginWith(hintPickWorker).then(firebaseWorker).enqueue()
         }
+    }
+
+    fun savePlaceNowWithoutHintText(placeUuid:String){
+        CompletableFromAction {
+            myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid))
+        }.subscribeOn(Schedulers.io())
+            .autoDisposable(scopeProvider)
+            .subscribe({
+                var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                    Data.Builder()
+                        .putString("UuidKey", placeUuid).build()
+                )
+                    .build()
+                WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
+            })
+    }
+
+    fun savePlaceNowWithHintText(placeUuid:String,hintText:String){
+        CompletableFromAction {
+            myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid, hint = hintText))
+        }.subscribeOn(Schedulers.io())
+            .autoDisposable(scopeProvider)
+            .subscribe({
+                var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                    Data.Builder()
+                        .putString("UuidKey", placeUuid).build()
+                )
+                    .build()
+                WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
+            }, { err -> Log.d("the error", "many of horror:${err.message}") })
     }
 }
 
