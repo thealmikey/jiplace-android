@@ -14,22 +14,26 @@ import org.koin.standalone.inject
 class HintPickerWorker(context: Context, params: WorkerParameters) : Worker(context, params), KoinComponent {
     val myPlacesRepoImpl: MyPlacesRepositoryImpl by inject()
 
-    val uuidKey = inputData.getString("UuidKey")
+    val uuidKey = inputData.getString("UuidKey")!!
     val theHint = inputData.keyValueMap.get("hint").toString()
 
 
     override fun doWork(): Result {
         runBlocking {
-            Log.d("saving loc", "worker this location")
-            var thePlace = myPlacesRepoImpl.findByUuid(uuidKey!!).take(1)
-                .observeOn(Schedulers.io()).blockingFirst()
-            CompletableFromAction {
-                var newPlace = thePlace.copy(hint = theHint)
-                myPlacesRepoImpl.update(newPlace)
-            }.subscribeOn(Schedulers.io()).subscribe {
-                Log.d("jiplace other", "n putting a location in jiplace other")
-            }
+         saveHintLocally(uuidKey,theHint)
         }
         return Result.success()
+    }
+
+    fun saveHintLocally(placeUuid:String,hintText:String){
+        Log.d("saving loc", "worker this location")
+        var thePlace = myPlacesRepoImpl.findByUuid(placeUuid!!).take(1)
+            .observeOn(Schedulers.io()).blockingFirst()
+        CompletableFromAction {
+            var newPlace = thePlace.copy(hint = hintText)
+            myPlacesRepoImpl.update(newPlace)
+        }.subscribeOn(Schedulers.io()).subscribe {
+            Log.d("jiplace other", "n putting a location in jiplace other")
+        }
     }
 }
