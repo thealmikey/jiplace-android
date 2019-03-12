@@ -24,7 +24,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import kotlinx.android.synthetic.main.jiplaces_users_inplace_user_item.view.*
 
-class JiplaceUserItem(
+class MyplaceUserItem(
     var context: Fragment,
     var theTime: Long,
     var user: User,

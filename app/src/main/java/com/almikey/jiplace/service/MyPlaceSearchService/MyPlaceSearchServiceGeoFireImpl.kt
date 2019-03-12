@@ -40,7 +40,7 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
                 override fun onKeyMoved(key: String?, location: GeoLocation?) {
                     Log.d("geofire firebase", "moved")
                     Log.d("geofire on keymoved", "$key")
-                    // groupAdapter.add(JiplaceUserItem(this@MyPlacesUserFragment))
+                    // groupAdapter.add(MyplaceUserItem(this@MyPlacesUserFragment))
                     return
                 }
 

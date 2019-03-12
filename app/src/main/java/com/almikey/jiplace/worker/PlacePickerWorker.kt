@@ -18,8 +18,11 @@ class PlacePickerWorker(context: Context, params: WorkerParameters) : Worker(con
     val theLocationMap = inputData.keyValueMap.get("location")
     var theLat = inputData.keyValueMap.get("latitude").toString()
     var theLon = inputData.keyValueMap.get("longitude").toString()
-
-
+    //when a MyPlace is created immediately by JiPlace Now, the latitude and longitude fields both have
+    //have 0.0 as their default values, this is because it takes a while before the device connects to
+    //the satelite and get a true realtime accurate value, this worker is fired of once the location has been found
+    //and it sets it in the database,by default the workSync flag on the MyPlace in the database at
+    //this point is usually false to indicate that the place picker worker hasn't set the values yet
     override fun doWork(): Result {
         runBlocking {
             Log.d("saving loc", "worker this location")

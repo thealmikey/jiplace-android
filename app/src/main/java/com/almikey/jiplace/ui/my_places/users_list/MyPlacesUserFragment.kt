@@ -101,7 +101,7 @@ class MyPlacesUserFragment : Fragment() {
                             Log.d("username", "${userr}")
                             if (FirebaseAuth.getInstance().uid != userr) {
                                 groupAdapter.add(
-                                    JiplaceUserItem(
+                                    MyplaceUserItem(
                                         this@MyPlacesUserFragment,
                                         theTime,
                                         user,

@@ -4,9 +4,7 @@ package com.almikey.jiplace.ui.homepage
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -28,26 +26,21 @@ import com.afollestad.materialdialogs.customview.getCustomView
 
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
-import com.almikey.jiplace.ui.activity.CrunchyCalendary
+import com.almikey.jiplace.ui.activity.MyPlaceOtherCalendar
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.LocationUtil.locationSettingsObservable
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
 import com.almikey.jiplace.worker.MyPlacesFirebaseSyncWorker
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_home_jiplace.*
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
 
@@ -137,7 +130,7 @@ class HomeFragment : Fragment() {
         theProgressBar.visibility = View.GONE
 
         jiPlaceOther.setOnClickListener {
-            var intent = Intent(activity, CrunchyCalendary::class.java)
+            var intent = Intent(activity, MyPlaceOtherCalendar::class.java)
             startActivityForResult(intent, 2)
         }
 
