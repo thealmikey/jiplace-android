@@ -7,6 +7,9 @@ import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalService
 import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalServiceRoomImpl
+import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceFirebaseSyncService
+import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncService
+import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.CurrentLocationRx
 import com.almikey.myplace.service.MyPlacesDao
@@ -43,6 +46,14 @@ class KoinModules {
 
             factory<CurrentLocationRx>{
                 CurrentLocationRx(androidApplication())
+            }
+
+            single<MyPlaceServerSyncService>{
+                MyPlaceFirebaseSyncService(get())
+            }
+
+            single<MyPlaceServerSyncServiceImpl>{
+                MyPlaceServerSyncServiceImpl(get())
             }
 
         }

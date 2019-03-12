@@ -32,7 +32,7 @@ import com.almikey.jiplace.util.LocationUtil.locationSettingsObservable
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.HintPickerWorker
 import com.almikey.jiplace.worker.MyLocationWorker
-import com.almikey.jiplace.worker.MyPlacesFirebaseSyncWorker
+import com.almikey.jiplace.worker.MyPlacesServerSyncWorker
 import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
@@ -49,7 +49,7 @@ class HomeFragment : Fragment() {
 
     val firebaseWorker by lazy {
         var constraint: Constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        OneTimeWorkRequestBuilder<MyPlacesFirebaseSyncWorker>().setConstraints(constraint).build()
+        OneTimeWorkRequestBuilder<MyPlacesServerSyncWorker>().setConstraints(constraint).build()
     }
 
 
