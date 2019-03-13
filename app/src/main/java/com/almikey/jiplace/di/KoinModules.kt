@@ -5,8 +5,8 @@ import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
-import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalService
-import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalServiceRoomImpl
+import com.almikey.jiplace.service.LocalStorageService.MyPlaceLocalService
+import com.almikey.jiplace.service.LocalStorageService.MyPlaceLocalServiceRoomImpl
 import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceFirebaseSyncService
 import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncService
 import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl

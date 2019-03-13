@@ -1,4 +1,4 @@
-package com.almikey.jiplace.service.MyPlaceLocalService
+package com.almikey.jiplace.service.LocalStorageService
 
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.myplace.service.MyPlacesDao

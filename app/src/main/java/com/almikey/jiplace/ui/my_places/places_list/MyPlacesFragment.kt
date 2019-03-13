@@ -27,6 +27,8 @@ import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.model.MyPlaceProfilePic
 import com.almikey.jiplace.model.MyPlaceUserShared
+import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceFirebaseSyncService
+import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.FilePickerUtil
@@ -50,6 +52,7 @@ import java.util.*
 class MyPlacesFragment : Fragment(), KoinComponent {
 
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
+    val myPlacesServerServerSyncServiceImpl:MyPlaceServerSyncServiceImpl by inject()
 
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
 
@@ -164,34 +167,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                  */
                 var newPlace = thePlace.copy(deletedStatus = "pending")
                 myPlacesViewModel.update(newPlace)
-
-                var theFbId = firebaseAuth.uid!!
-                var ref: DatabaseReference = FirebaseDatabase
-                    .getInstance().reference
-
-                var fifteenMinGroupUp = timeMinuteGroupUp(thePlace.time.time, 15).toString()
-                var fifteenMinGroupDown = timeMinuteGroupDown(thePlace.time.time, 15).toString()
-
-                /**
-                 *    Jiplace are stored in 15 minute intervals
-                 *    if a person jiplaces themselves at 12:12, it's rounded up to 12:15 and down to 12:00
-                 *    if another person jiplaces themseleves at 11:40,it's rounded up to 12:00 and down to 11:30
-                 *    searches for jiplaces are then possible for people who fall in their rounded up and down
-                 *    categories
-                 *    this helps prevent searching the whole database for people who have placed themselves as
-                 *    too granular time would lead to too many queries especially as the database grows
-                 */
-                val childUpdates = HashMap<String, Any?>()
-                childUpdates["jiplaces/fifteen/$fifteenMinGroupUp/$theFbId"] = null
-                childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
-
-                ref.updateChildren(childUpdates).addOnSuccessListener {
-                    CompletableFromAction {
-                        var newPlace = thePlace.copy(deletedStatus = "true")
-                        myPlacesViewModel.update(newPlace)
-                        deleteOtherUsersFromDeletedPlace(thePlace.uuidString)
-                    }.subscribeOn(Schedulers.io()).subscribe()
-                }
+                myPlacesServerServerSyncServiceImpl.deleteMyPlaceOnServer(newPlace)
             }
     }
 
@@ -215,52 +191,6 @@ class MyPlacesFragment : Fragment(), KoinComponent {
      *       this is done by setting flags on firebase indicating that the user should delete
      *       their Jiplace as well. This happens automatically on startup
      */
-    fun deleteOtherUsersFromDeletedPlace(placeUUID:String){
-        var usersInPlace: List<MyPlaceUserShared> = myPlaceUserSharedDao
-            .findByMyPlaceUuid(placeUUID)
-            .blockingFirst()
-        Log.d("users in place", "${usersInPlace.size}")
-        var myPlacesShared: List<MyPlaceUserShared> = myPlaceUserSharedDao
-            .findByMyPlaceUuid(placeUUID)
-            .blockingFirst()
-
-        myPlaceUserSharedDao.delete(*myPlacesShared.toTypedArray())
-        for (i in usersInPlace) {
-            Log.d("shared user", "i got in the loop ${usersInPlace.size}")
-            var userTimes: Int =
-                myPlaceUserSharedDao.findByMyPlaceUuid(placeUUID).blockingFirst().size
-            Log.d("shared user", "the number of jiplaces shared is $userTimes")
-            if (userTimes == 0) {
-                var wrapper: UserWrapper = UserWrapper.initWithEntityId(i.otherUserId);
-                var userObservable = wrapper.metaOn();
-
-                var myUser =
-                    userObservable.subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
-                        .blockingFirst()
-                if (myUser.entityID!! != null) {
-                    for (thread in ChatSDK.thread().getThreads(ThreadType.Private1to1)) {
-                        if (thread.getUsers().size === 2 &&
-                            thread.containsUser(ChatSDK.currentUser()) &&
-                            thread.containsUser(myUser)
-                        ) {
-                            var jointThread = thread
-                            DaoCore.deleteEntity(jointThread);
-                            DaoCore.deleteEntity(myUser);
-                            var refUserChatLink: DatabaseReference =
-                                FirebaseDatabase.getInstance()
-                                    .getReference("myplaceusers/chat/${firebaseAuth.uid}/${myUser.entityID}")
-                            var refUserChatOtherLink: DatabaseReference =
-                                FirebaseDatabase.getInstance()
-                                    .getReference("myplaceusers/chat/${myUser.entityID}/${firebaseAuth.uid}")
-                            refUserChatLink.setValue(false)
-                            refUserChatOtherLink.setValue(false)
-                        }
-                    }
-                }
-
-            }
-        }
-    }
 
 
     fun editMyPlaceHint(theUuid: String, position: Int) {

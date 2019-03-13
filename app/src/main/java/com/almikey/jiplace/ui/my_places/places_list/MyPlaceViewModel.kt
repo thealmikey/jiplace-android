@@ -10,4 +10,5 @@ class MyPlaceViewModel(val myPlacesRepositoryImpl: MyPlacesRepositoryImpl) : Vie
     fun addPlace(myPlace: MyPlace) = myPlacesRepositoryImpl.addMyPlace(myPlace)
     fun update(myPlace:MyPlace)= myPlacesRepositoryImpl.update(myPlace)
     fun findByUuid(uuid:String) = myPlacesRepositoryImpl.findByUuid(uuid)
+    fun delete(myPlace: MyPlace)=myPlacesRepositoryImpl.delete(myPlace)
 }

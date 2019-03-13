@@ -1,7 +1,7 @@
 package com.almikey.jiplace.repository
 
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.service.MyPlaceLocalService.MyPlaceLocalService
+import com.almikey.jiplace.service.LocalStorageService.MyPlaceLocalService
 import io.reactivex.Flowable
 
 abstract class MyPlacesRepository(var myPlacesLocalService: MyPlaceLocalService){
@@ -10,4 +10,5 @@ abstract class MyPlacesRepository(var myPlacesLocalService: MyPlaceLocalService)
     abstract fun findByUuid(uuid:String): Flowable<MyPlace>
     abstract fun update(myPlace: MyPlace)
     abstract fun findByLocationData(mLatitude:Float,mLongitude:Float,theTime:Long):Flowable<List<MyPlace>>
+    abstract fun delete(myPlace: MyPlace):Boolean
 }

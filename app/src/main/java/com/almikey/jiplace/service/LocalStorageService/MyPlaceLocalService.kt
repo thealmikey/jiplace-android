@@ -1,4 +1,4 @@
-package com.almikey.jiplace.service.MyPlaceLocalService
+package com.almikey.jiplace.service.LocalStorageService
 
 import com.almikey.jiplace.model.MyPlace
 import io.reactivex.Flowable

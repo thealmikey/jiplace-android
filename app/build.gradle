@@ -198,11 +198,11 @@ dependencies {
 
     implementation 'ru.cleverpumpkin:crunchycalendar:1.1.0'
 
-    implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.5.7'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.5.7'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.5.7'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.5.7'
-    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.5.7'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.6.0'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.6.0'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.6.0'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.6.0'
+    implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.6.0'
 
     //firebase
     implementation 'com.google.firebase:firebase-core:16.0.7'
@@ -232,8 +232,8 @@ dependencies {
     implementation 'com.firebase:geofire-android:2.3.1'
     implementation 'de.hdodenhof:circleimageview:2.2.0'
 
-//    def arrow_version = "0.8.2"
-//    implementation "io.arrow-kt:arrow-core:$arrow_version"
+    def arrow_version = "0.8.2"
+    implementation "io.arrow-kt:arrow-core:$arrow_version"
 
     def anko_version = "0.10.8"
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
