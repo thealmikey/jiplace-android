@@ -6,6 +6,7 @@ import com.almikey.jiplace.util.Common
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -67,6 +68,9 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
         var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
         var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
 
-        return nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct()
+        return nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct().filter {
+            //                it != ChatSDK.currentUser().entityID
+            it != FirebaseAuth.getInstance().uid
+        }
     }
 }

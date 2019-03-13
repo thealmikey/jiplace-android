@@ -46,15 +46,15 @@ class MyPlacesUserFragment : Fragment() {
     var theLongitude: Double? = null
     var theTime: Long = 0L
     var theUUID: String = ""
-    var fifteenMinGroupUp:Long = 0L
-    var fifteenMinGroupDown:Long = 0L
+    var fifteenMinGroupUp: Long = 0L
+    var fifteenMinGroupDown: Long = 0L
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         theLatitude = arguments?.getDouble("latitude")
         theLongitude = arguments?.getDouble("longitude")
         theTime = arguments!!.getLong("theTime")
         theUUID = arguments!!.getString("theUUID")
-        if(theTime!=0L) {
+        if (theTime != 0L) {
             fifteenMinGroupUp = timeMinuteGroupUp(theTime, 15)
             fifteenMinGroupDown = timeMinuteGroupDown(theTime, 15)
         }
@@ -79,56 +79,45 @@ class MyPlacesUserFragment : Fragment() {
         //we use distinct to ensure that if someone jiplaces in the same place more than once, it doesn't appear
         //as two cards in the observer's
 
-        var findNearbyPeople= findNearByPeopleObservable(theTime, MyLocation(theLongitude!!,theLatitude!!))
+        var findNearbyPeople = findNearByPeopleObservable(theTime, MyLocation(theLongitude!!, theLatitude!!))
 
         findNearbyPeople.observeOn(Schedulers.io())
-            .distinct().filter {
-                //                it != ChatSDK.currentUser().entityID
-                it != FirebaseAuth.getInstance().uid
-            }
             .autoDisposable(scopeProvider)
-            .subscribe { userr ->
-                addNearbyUserToDbAsSharedUser(userr)
-                if(fifteenMinGroupDown!=0L && fifteenMinGroupDown!=0L){
+            .subscribe { otherUser ->
+                addNearbyUserToDbAsSharedUser(otherUser)
 
-                  fetchOtherUserMyPlacePicsObserverble(userr).distinct().subscribe {myPlacePics ->
+                fetchOtherUserMyPlacePicsObserverble(otherUser).distinct().subscribe { myPlacePics ->
+                    var wrapper: UserWrapper = UserWrapper.initWithEntityId(otherUser);
+                    wrapper.metaOn();
+                    wrapper.onlineOn();
+                    var user = wrapper.getModel();
+                    groupAdapter.add(
+                        MyplaceUserItem(
+                            this@MyPlacesUserFragment,
+                            theTime,
+                            user,
+                            otherUser!!,
+                            myPlacePics
+                        )
+                    )
 
-                            var wrapper: UserWrapper = UserWrapper.initWithEntityId(userr);
-                            wrapper.metaOn();
-                            wrapper.onlineOn();
-                            var user = wrapper.getModel();
-
-                            Log.d("username", "${userr}")
-                            if (FirebaseAuth.getInstance().uid != userr) {
-                                groupAdapter.add(
-                                    MyplaceUserItem(
-                                        this@MyPlacesUserFragment,
-                                        theTime,
-                                        user,
-                                        userr!!,
-                                        myPlacePics
-                                    )
-                                )
-                            }
-                        }
-                    }
+                }
             }
-
-
         mRecyclerview.adapter = groupAdapter
     }
 
 
-    fun fetchOtherUserMyPlacePicsObserverble(userRef:String):Observable<ArrayList<String>>{
+    fun fetchOtherUserMyPlacePicsObserverble(userRef: String): Observable<ArrayList<String>> {
 
-        fun picReference(timeGroup:Long):DatabaseReference{
+        fun picReference(timeGroup: Long): DatabaseReference {
             return FirebaseDatabase.getInstance()
                 .getReference("myplaceusers/$userRef/profilepic/$timeGroup")
         }
+
         var refUpPic: DatabaseReference = picReference(fifteenMinGroupUp)
         var refDownPic: DatabaseReference = picReference(fifteenMinGroupDown)
 
-        fun refPicObservable(picRef:DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
+        fun refPicObservable(picRef: DatabaseReference) = Observable.create<ArrayList<String>> { emitter ->
             picRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     var theArr = arrayListOf<String>()
@@ -137,7 +126,6 @@ class MyPlacesUserFragment : Fragment() {
                             theArr.add(imageSnapshot.value as String)
                             Log.d("user frag", "image url up i got ${imageSnapshot.value}")
                         }
-                        Log.d("the frag", "down ${theArr.toString()}")
                     }
                     emitter.onNext(theArr)
                 }
@@ -155,7 +143,7 @@ class MyPlacesUserFragment : Fragment() {
     }
 
     @SuppressLint("AutoDispose")
-    fun addNearbyUserToDbAsSharedUser(otherUserId:String){
+    fun addNearbyUserToDbAsSharedUser(otherUserId: String) {
         var key = otherUserId
         mOtherUserDao.findByUuid(key).subscribe({
             myPlaceUserSharedDao.findByMyPlaceUuid(theUUID)
