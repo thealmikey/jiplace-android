@@ -31,7 +31,7 @@ class HintPickerWorker(context: Context, params: WorkerParameters) : Worker(cont
             .observeOn(Schedulers.io()).blockingFirst()
         CompletableFromAction {
             var newPlace = thePlace.copy(hint = hintText)
-            myPlacesRepoImpl.update(newPlace)
+            myPlacesRepoImpl.update(newPlace).subscribe()
         }.subscribeOn(Schedulers.io()).subscribe {
             Log.d("jiplace other", "n putting a location in jiplace other")
         }

@@ -51,7 +51,7 @@ class MyLocationWorker(context: Context, params: WorkerParameters) : Worker(cont
                 var newLocation = MyLocation(location.latitude, location.longitude)
                 var newPlace: MyPlace = thePlace.copy(location = newLocation, workSync = true)
                 CompletableFromAction {
-                    myPlacesDao.update(newPlace)
+                    myPlacesDao.update(newPlace).subscribe()
                 }.subscribeOn(Schedulers.io()).blockingAwait()
                 Log.d("my place", " got the location for ${thePlace.hint}")
 

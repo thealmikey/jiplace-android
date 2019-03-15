@@ -14,11 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.*
-import co.chatsdk.core.dao.DaoCore
-import co.chatsdk.core.interfaces.ThreadType
-import co.chatsdk.core.session.ChatSDK
 import co.chatsdk.core.session.NM
-import co.chatsdk.firebase.wrappers.UserWrapper
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
@@ -26,17 +22,11 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.model.MyPlaceProfilePic
-import com.almikey.jiplace.model.MyPlaceUserShared
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceFirebaseSyncService
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl
-import com.almikey.jiplace.util.Common.timeMinuteGroupDown
-import com.almikey.jiplace.util.Common.timeMinuteGroupUp
+import com.almikey.jiplace.service.ServerSyncService.MyPlaceServerSyncServiceImpl
 import com.almikey.jiplace.util.FilePickerUtil
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.UploadMyPlaceImageWorker
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import io.reactivex.Completable
@@ -46,13 +36,12 @@ import io.reactivex.schedulers.Schedulers
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
-import java.util.*
 
 
 class MyPlacesFragment : Fragment(), KoinComponent {
 
     val myPlaceUserSharedDao: MyPlaceUserSharedDao by inject()
-    val myPlacesServerServerSyncServiceImpl:MyPlaceServerSyncServiceImpl by inject()
+    val myPlacesServerServerSyncServiceImpl: MyPlaceServerSyncServiceImpl by inject()
 
     private val scopeProvider by lazy { AndroidLifecycleScopeProvider.from(this) }
 
@@ -149,13 +138,13 @@ class MyPlacesFragment : Fragment(), KoinComponent {
             }
             else -> super.onContextItemSelected(item)
         }
-               // handle menu item here
+        // handle menu item here
         return super.onContextItemSelected(item)
     }
 
 
     @SuppressLint("AutoDispose")
-    fun deletePlaceFromDatabase(info:ContextMenuRecyclerView.RecyclerViewContextMenuInfo){
+    fun deletePlaceFromDatabase(info: ContextMenuRecyclerView.RecyclerViewContextMenuInfo) {
         Log.d("delete", "context menu")
         myPlacesViewModel.findByUuid(myPlaces[info.position].uuidString)
             .subscribeOn(Schedulers.io()).take(1).observeOn(Schedulers.io()).subscribe { thePlace ->
@@ -166,8 +155,16 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                  *      on firebase
                  */
                 var newPlace = thePlace.copy(deletedStatus = "pending")
-                myPlacesViewModel.update(newPlace)
-                myPlacesServerServerSyncServiceImpl.deleteMyPlaceOnServer(newPlace)
+                myPlacesViewModel.update(newPlace).subscribe({
+                    Log.d("MyPlacesFragment","was able to update myplace status to pending")
+                    myPlacesViewModel.deleteOnDatabaseAfterServerDelete(
+                        newPlace,
+                        myPlacesServerServerSyncServiceImpl.deleteMyPlaceOnServer(newPlace)
+                    )
+                },{
+                    Log.d("MyPlacesFragment","unable to update myplace status to pending")
+                })
+
             }
     }
 
@@ -205,7 +202,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
 
         dialog.positiveButton {
             theHintStr = theText?.text.toString()
-            savePlaceWithHint(theUuid,position,theHintStr)
+            savePlaceWithHint(theUuid, position, theHintStr)
         }
     }
 
@@ -222,18 +219,19 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                 Log.d("local uri", "the local uri is $uri")
                 var theUuid = myPlacesAdapter.uuidForSelectedImage
                 var thePosition = myPlacesAdapter.thePosition
-                updatePicInDatabase(uri!!,theUuid,imageDataLocation)
-                var thePlaces =  myPlaces.toMutableList()
-                thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = "placeholder"))
+                updatePicInDatabase(uri!!, theUuid, imageDataLocation)
+                var thePlaces = myPlaces.toMutableList()
+                thePlaces[thePosition] =
+                    thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = "placeholder"))
                 myPlacesAdapter.myplaces = thePlaces
                 mRecyclerview.adapter!!.notifyItemChanged(thePosition)
 
             } else {
                 var thePosition = myPlacesAdapter.thePosition
-                var thePlaces =  myPlaces.toMutableList()
+                var thePlaces = myPlaces.toMutableList()
                 thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = ""))
                 myPlacesAdapter.myplaces = thePlaces
-                mRecyclerview.adapter = MyPlaceAdapter(this,thePlaces)
+                mRecyclerview.adapter = MyPlaceAdapter(this, thePlaces)
                 mRecyclerview.adapter!!.notifyItemChanged(thePosition)
             }
         }
@@ -242,13 +240,13 @@ class MyPlacesFragment : Fragment(), KoinComponent {
     }
 
     @SuppressLint("AutoDispose")
-    fun updatePicInDatabase(uri:String,theUuid:String,imageDataLocation:String){
+    fun updatePicInDatabase(uri: String, theUuid: String, imageDataLocation: String) {
         myPlacesViewModel.findByUuid(theUuid).take(1)
             .observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe {
                 var newPlace = it.copy(profile = MyPlaceProfilePic(localPicUrl = uri!!))
                 //change item in db and change the adapter
                 Completable.fromAction {
-                    myPlacesViewModel.update(newPlace)
+                    myPlacesViewModel.update(newPlace).subscribe()
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
                     myPlacesViewModel.myPlaces.observeOn(AndroidSchedulers.mainThread())
                         .autoDisposable(scopeProvider)
@@ -264,15 +262,15 @@ class MyPlacesFragment : Fragment(), KoinComponent {
                         }
                     Log.d("adapter notify", "after loading adapter notify")
                 }
-                uploadPicToFirebase(it,imageDataLocation)
+                uploadPicToFirebase(it, imageDataLocation)
             }
     }
 
-    fun uploadPicToFirebase(it:MyPlace,imageDataLocation:String){
+    fun uploadPicToFirebase(it: MyPlace, imageDataLocation: String) {
         var constraint: Constraints =
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         var uploadMyPlaceImageWorker =
-            OneTimeWorkRequestBuilder<UploadMyPlaceImageWorker>().addTag("place-picker").setInputData(
+            OneTimeWorkRequestBuilder<UploadMyPlaceImageWorker>().addTag("upload pic firebase").setInputData(
                 Data.Builder()
                     .putString("UuidKey", it.uuidString)
                     .putAll(
@@ -288,15 +286,16 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         WorkManager.getInstance().enqueue(uploadMyPlaceImageWorker)
     }
 
-    fun savePlaceWithHint(placeUuid:String,placePosition:Int,hintText:String){
+    fun savePlaceWithHint(placeUuid: String, placePosition: Int, hintText: String) {
         CompletableFromAction {
             var thePlace = myPlacesViewModel.findByUuid(placeUuid)
                 .subscribeOn(Schedulers.io()).blockingFirst()
             var newPlace = thePlace.copy(hint = hintText)
 
             @SuppressLint("AutoDispose")
-            var b = CompletableFromAction { myPlacesViewModel.update(newPlace)
-                var thePlaces =  myPlaces.toMutableList()
+            var b = CompletableFromAction {
+                myPlacesViewModel.update(newPlace).subscribe()
+                var thePlaces = myPlaces.toMutableList()
                 thePlaces[placePosition] = newPlace
                 myPlacesAdapter.myplaces = thePlaces
             }

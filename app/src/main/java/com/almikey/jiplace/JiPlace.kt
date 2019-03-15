@@ -28,14 +28,6 @@ class JiPlace : MultiDexApplication() {
 
         Places.initialize(applicationContext,"AIzaSyCbkci-b47seazRUhZsFRLJVhvOSoxMiSQ")
 
-        WorkManager.initialize(
-            this,
-            androidx.work.Configuration.Builder()
-                .setMinimumLoggingLevel(Log.VERBOSE)
-                .setMaxSchedulerLimit(50)
-                .build()
-        )
-
         ViewPump.init(
             ViewPump.builder()
                 .addInterceptor(

@@ -6,6 +6,7 @@ import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.di.KoinModules.Companion.roomTestModule
 import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlace
+import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.myplace.service.MyPlacesDao
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
 import org.junit.After
@@ -21,7 +22,7 @@ import java.util.*
 @RunWith(AndroidJUnit4::class)
 class MyPlacesDaoTest: KoinTest {
     val myPlacesDb:MyPlacesRoomDatabase by inject()
-    val myPlacesDao:MyPlacesDao by inject()
+    val myPlacesDao = myPlacesDb.myPlacesDao()
 
     @Before()
     fun before(){
@@ -50,12 +51,13 @@ class MyPlacesDaoTest: KoinTest {
 
         var myPlace3  = MyPlace(location=location3,time=now3)
 
-        myPlacesDao.insertAll(myPlace1,myPlace2,myPlace3)
+//        myPlacesRepositoryImpl.insert(myPlace1,myPlace2,myPlace3)
+        myPlacesDao.insertAll(myPlace1)
 
-        var places = myPlacesDao.getAll().blockingFirst()
+        var places =  myPlacesDao.getAll().blockingFirst()
 
         Log.d("my places",places.toString())
-        Assert.assertThat(places, hasSize(3))
+        Assert.assertThat(places, hasSize(1))
     }
 
 }

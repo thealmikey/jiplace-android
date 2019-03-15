@@ -2,6 +2,7 @@ package com.almikey.jiplace.service.LocalStorageService
 
 import com.almikey.jiplace.model.MyPlace
 import io.reactivex.Flowable
+import io.reactivex.Single
 
 
 interface MyPlaceLocalService {
@@ -18,9 +19,10 @@ interface MyPlaceLocalService {
 
     fun findByLocationData(mLatitude:Float,mLongitude:Float,theTime:Long,deleteStatus:String="true"): Flowable<List<MyPlace>>
 
-    fun insertAll(vararg myPlaces: MyPlace)
+    fun insertAll(vararg myPlaces: MyPlace): Single<List<Long>>
 
-    fun update(vararg myPlace:MyPlace)
+    fun update(myPlace:MyPlace): Single<Int>
 
-    fun delete(myPlace: MyPlace)
+    fun delete(myPlace: MyPlace): Single<Int>
+
 }

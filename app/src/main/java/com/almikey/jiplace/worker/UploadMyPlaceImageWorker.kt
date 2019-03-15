@@ -69,7 +69,7 @@ class UploadMyPlaceImageWorker(context: Context, params: WorkerParameters) : Wor
                                         firebasePicUrl = theFirebaseUrl.toString()
                                     )
                                 )
-                                myPlacesRepoImpl.update(newPlace)
+                                myPlacesRepoImpl.update(newPlace).subscribe()
                             }
 //                val childUpdates = HashMap<String, Any?>()
 //                childUpdates["myplaceusers/$theFbId/profilepic/$fifteenMinGroupUp"] = theFirebaseUrl.toString()

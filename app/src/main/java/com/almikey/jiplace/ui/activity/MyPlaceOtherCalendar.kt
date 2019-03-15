@@ -1,5 +1,6 @@
 package com.almikey.jiplace.ui.activity
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -59,10 +60,13 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
         //the UUID has content inside, it means we were here and don't need to a new MyPlace instance
         //with createMyPlace
         if (savedInstanceState?.getString("theUuid") == null) {
+            Log.d("Calendar","uud is null created uuid then myplace")
             theUUId = generateRandomUUID()
+            Log.d("Calendar","uuid was null, generated one was $theUUId")
             createMyPlace(theUUId)
         } else {
             theUUId = savedInstanceState.getString("theUuid")
+            Log.d("calendar","uuid was not null it was set and is  $theUUId")
         }
 
         var theCal = calendarDateView
@@ -87,8 +91,8 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
         if (requestCode == 5) {
             if (resultCode == RESULT_OK) {
                 val theUuid = data?.getStringExtra("theUuid")
-                var lat = data?.getDoubleExtra("latitude", 69.toDouble())
-                var lon = data?.getDoubleExtra("longitude", 69.toDouble())
+                var lat = data?.getDoubleExtra("latitude", 69.0)
+                var lon = data?.getDoubleExtra("longitude", 69.0)
                 var placeName = data?.getStringExtra("placeName")
                 //launch a worker to store the activity from the Place Picker activity
                 //to the database for the particular MyPlace which is identifiable through it's UUID
@@ -111,9 +115,16 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("autodispose")
     fun createMyPlace(uuid: String) {
         Observable.create<Unit> {
+            Log.d("calendar","in createMyPlace")
             myPlacesRepoImpl.addMyPlace(MyPlace(uuidString = uuid))
+                .subscribe({
+                    Log.d("calendar","createMyPlace i succeeded in creating place")
+                },{
+                    Log.d("calendar","createMyPlace i failed in creating place ${it.message}")
+                })
         }.flatMap { _ ->
             myPlacesRepoImpl.findByUuid(theUUId).toObservable()
         }.subscribeOn(Schedulers.io())
@@ -131,6 +142,7 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
     //the placeUUID is for the MyPlace object we're picking date for
     fun launchTimePicker(date: CalendarDate, placeUuid: String) {
         var theUUId = placeUuid
+        Log.d("calendar","launching time picker uuid is $placeUuid and date is ${date.timeInMillis}")
         var theBundle = Bundle()
         theBundle.apply {
             putString("theDate", "$date")
@@ -155,6 +167,10 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
     }
 
     fun launchPlacePickerWorker(latitude: Double, longitude: Double, placeUUD: String) {
+        if(placeUUD!=theUUId){
+            Log.d("MyPlaceOtherCalendar","the uuid's dont match")
+        }
+        Log.d("MyPlaceOtherCalendar","lat is $latitude,lon is $longitude,placeUUID is $placeUUD")
         var placePickWorker =
             OneTimeWorkRequestBuilder<PlacePickerWorker>().addTag("place-picker").setInputData(
                 Data.Builder()

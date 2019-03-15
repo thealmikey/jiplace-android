@@ -28,7 +28,7 @@ class TimePickerWorker(context: Context, params: WorkerParameters) : Worker(cont
                     timeRoundDown = timeMinuteGroupDown(theDate, 15),
                     timeRoundUp = timeMinuteGroupUp(theDate, 15)
                 )
-                myPlacesRepoImpl.update(newPlace)
+                myPlacesRepoImpl.update(newPlace).subscribe()
             }.subscribeOn(Schedulers.io()).subscribe {
                 Log.d("jiplace other", "n putting a date in jiplace other")
             }

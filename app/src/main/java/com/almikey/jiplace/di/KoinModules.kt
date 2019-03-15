@@ -7,9 +7,9 @@ import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.service.LocalStorageService.MyPlaceLocalService
 import com.almikey.jiplace.service.LocalStorageService.MyPlaceLocalServiceRoomImpl
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceFirebaseSyncService
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncService
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl
+import com.almikey.jiplace.service.ServerSyncService.MyPlaceFirebaseSyncService
+import com.almikey.jiplace.service.ServerSyncService.MyPlaceServerSyncService
+import com.almikey.jiplace.service.ServerSyncService.MyPlaceServerSyncServiceImpl
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.CurrentLocationRx
 import com.almikey.myplace.service.MyPlacesDao
@@ -34,12 +34,12 @@ class KoinModules {
             single<OtherUserDao>{
                 get<MyPlacesRoomDatabase>().otherUserDao()
             }
-            single<MyPlaceLocalService> {
-                MyPlaceLocalServiceRoomImpl()
+            factory<MyPlaceLocalService> {
+                MyPlaceLocalServiceRoomImpl(get())
             }
             // single instance of HelloRepository
-            single<MyPlacesRepositoryImpl> {
-                MyPlacesRepositoryImpl(get())
+            factory<MyPlacesRepositoryImpl> {
+                MyPlacesRepositoryImpl(get(),get())
             }
             // MyViewModel ViewModel
             viewModel { MyPlaceViewModel(get()) }
@@ -48,11 +48,11 @@ class KoinModules {
                 CurrentLocationRx(androidApplication())
             }
 
-            single<MyPlaceServerSyncService>{
+            factory<MyPlaceServerSyncService>{
                 MyPlaceFirebaseSyncService(get())
             }
 
-            single<MyPlaceServerSyncServiceImpl>{
+            factory<MyPlaceServerSyncServiceImpl>{
                 MyPlaceServerSyncServiceImpl(get())
             }
 

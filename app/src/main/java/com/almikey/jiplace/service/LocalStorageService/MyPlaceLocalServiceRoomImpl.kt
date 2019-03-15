@@ -1,13 +1,13 @@
 package com.almikey.jiplace.service.LocalStorageService
 
+import android.util.Log
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.myplace.service.MyPlacesDao
 import io.reactivex.Flowable
+import io.reactivex.Single
 import org.koin.standalone.KoinComponent
-import org.koin.standalone.inject
 
-class MyPlaceLocalServiceRoomImpl:MyPlaceLocalService,KoinComponent{
-    val myPlacesDao:MyPlacesDao by inject()
+class MyPlaceLocalServiceRoomImpl(var myPlacesDao:MyPlacesDao):MyPlaceLocalService{
 
     override fun getAll(): Flowable<List<MyPlace>> {
        return myPlacesDao.getAll()
@@ -38,15 +38,18 @@ class MyPlaceLocalServiceRoomImpl:MyPlaceLocalService,KoinComponent{
         return myPlacesDao.findByLocationData(mLatitude,mLongitude,theTime,deleteStatus)
     }
 
-    override fun insertAll(vararg myPlaces: MyPlace) {
+    override fun insertAll(vararg myPlaces: MyPlace): Single<List<Long>> {
         return myPlacesDao.insertAll(*myPlaces)
     }
 
-    override fun update(vararg myPlace: MyPlace) {
-        return myPlacesDao.update(*myPlace)
+    override fun update(myPlace: MyPlace): Single<Int> {
+        Log.d("local service","i got an update from MyPlaceLocalRoomImpl")
+        return myPlacesDao.update(myPlace)
     }
 
-    override fun delete(myPlace: MyPlace) {
+    override fun delete(myPlace: MyPlace): Single<Int> {
+        Log.d("local service","i got to the delete of MyPlaceLocalRoomImpl")
         return myPlacesDao.delete(myPlace)
     }
+
 }

@@ -28,11 +28,11 @@ interface MyPlacesDao {
     fun findByLocationData(mLatitude:Float,mLongitude:Float,theTime:Long,deleteStatus:String="true"): Flowable<List<MyPlace>>
 
     @Insert
-    fun insertAll(vararg myPlaces: MyPlace)
+    fun insertAll(vararg myPlaces: MyPlace):Single<List<Long>>
 
     @Update
-    fun update(vararg myPlace:MyPlace)
+    fun update(myPlace:MyPlace):Single<Int>
 
     @Delete
-    fun delete(myPlace: MyPlace)
+    fun delete(myPlace: MyPlace):Single<Int>
 }

@@ -28,13 +28,13 @@ class PlacePickerWorker(context: Context, params: WorkerParameters) : Worker(con
             Log.d("saving loc", "worker this location")
             var thePlace = myPlacesRepoImpl.findByUuid(uuidKey!!)
                 .observeOn(Schedulers.io()).blockingFirst()
-            CompletableFromAction {
                 var newPlace =
                     thePlace.copy(location = MyLocation(theLon!!.toDouble(), theLat!!.toDouble()), workSync = true)
-                myPlacesRepoImpl.update(newPlace)
-            }.subscribeOn(Schedulers.io()).subscribe {
-                Log.d("jiplace other", "n putting a location in jiplace other")
-            }
+                myPlacesRepoImpl.update(newPlace).subscribeOn(Schedulers.io()).subscribe ({
+                    Log.d("PlacePickerWorker","was able to update location")
+            },{
+                    Log.d("PlacePickerWorker","was unable to update location")
+                })
         }
         return Result.success()
     }

@@ -6,9 +6,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.almikey.jiplace.database.MyPlacesRoomDatabase
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.service.MyPlaceServerSyncService.MyPlaceServerSyncServiceImpl
-import com.firebase.geofire.GeoFire
-import com.google.firebase.database.FirebaseDatabase
+import com.almikey.jiplace.service.ServerSyncService.MyPlaceServerSyncServiceImpl
 import kotlinx.coroutines.runBlocking
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject

@@ -52,9 +52,6 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:node="merge">
-        <uses-library
-                android:name="android.test.runner"
-                android:required="false"/>
 
         <activity android:name=".ui.my_places.users_list.UserImageActivity">
         </activity>
@@ -88,11 +85,6 @@
                 android:name="co.chatsdk.ui.main.MainActivity"
                 android:parentActivityName=".MainActivity"
                 tools:replace="android:parentActivityName"/>
-
-        <provider
-                android:name="androidx.work.impl.WorkManagerInitializer"
-                android:authorities="${applicationId}.workmanager-init"
-                tools:node="remove"/>
 
         <service android:name=".service.MyPlaceFirebaseMessagingService">
             <intent-filter>

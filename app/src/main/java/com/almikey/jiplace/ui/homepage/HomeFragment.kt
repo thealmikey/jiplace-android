@@ -153,7 +153,7 @@ class HomeFragment : Fragment() {
 
                 dialog.positiveButton {
                     hintText = theText?.text.toString()
-                    savePlaceNowWithHintText(theUUId,hintText)
+                    savePlaceNowWithHintText(theUUId, hintText)
                 }
 
                 return Unit
@@ -230,34 +230,36 @@ class HomeFragment : Fragment() {
         }
     }
 
-    fun savePlaceNowWithoutHintText(placeUuid:String){
-        CompletableFromAction {
+    fun savePlaceNowWithoutHintText(placeUuid: String) {
             myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid))
-        }.subscribeOn(Schedulers.io())
-            .autoDisposable(scopeProvider)
-            .subscribe({
-                var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
-                    Data.Builder()
-                        .putString("UuidKey", placeUuid).build()
-                )
-                    .build()
-                WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-            })
+                .subscribeOn(Schedulers.io()).autoDisposable(scopeProvider)
+                .subscribe({
+                    var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                        Data.Builder()
+                            .putString("UuidKey", placeUuid).build()
+                    )
+                        .build()
+                    WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
+                    Log.d("save place now", "was able to save placenow without hint,worker started")
+                }, {
+                    Log.d("save place now", "was unable to save placenow without hint, err message is ${it.message}")
+                })
     }
 
-    fun savePlaceNowWithHintText(placeUuid:String,hintText:String){
-        CompletableFromAction {
-            myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid, hint = hintText))
-        }.subscribeOn(Schedulers.io())
-            .autoDisposable(scopeProvider)
-            .subscribe({
+    fun savePlaceNowWithHintText(placeUuid: String, hintText: String) {
+        myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid, hint = hintText))
+            .subscribeOn(Schedulers.io())
+            .autoDisposable(scopeProvider).subscribe({
                 var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
                     Data.Builder()
                         .putString("UuidKey", placeUuid).build()
                 )
                     .build()
                 WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-            }, { err -> Log.d("the error", "many of horror:${err.message}") })
+                Log.d("save place now", "was able to save placenow with hint,worker started")
+            }, {
+                Log.d("save place now", "was unable to save placenow with hint,err message is ${it.message}}")
+            })
     }
 }
 
