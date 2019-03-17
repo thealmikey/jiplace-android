@@ -1,4 +1,4 @@
-package com.almikey.jiplace.ui.activity
+package com.almikey.jiplace.ui.calendar
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -29,7 +29,7 @@ import ru.cleverpumpkin.calendar.CalendarDate
 
 import java.util.*
 
-class MyPlaceOtherCalendar : AppCompatActivity() {
+class MyPlaceCalendarActivity : AppCompatActivity() {
 
 // a flag to indicate if a Jiplacing other event has been done to completion, this helps
     //when we start the timepicker fragment and place picker fragment which take us away from the activity
@@ -168,9 +168,9 @@ class MyPlaceOtherCalendar : AppCompatActivity() {
 
     fun launchPlacePickerWorker(latitude: Double, longitude: Double, placeUUD: String) {
         if(placeUUD!=theUUId){
-            Log.d("MyPlaceOtherCalendar","the uuid's dont match")
+            Log.d("MyPlaceCalendarActivity","the uuid's dont match")
         }
-        Log.d("MyPlaceOtherCalendar","lat is $latitude,lon is $longitude,placeUUID is $placeUUD")
+        Log.d("MyPlaceCalendarActivity","lat is $latitude,lon is $longitude,placeUUID is $placeUUD")
         var placePickWorker =
             OneTimeWorkRequestBuilder<PlacePickerWorker>().addTag("place-picker").setInputData(
                 Data.Builder()

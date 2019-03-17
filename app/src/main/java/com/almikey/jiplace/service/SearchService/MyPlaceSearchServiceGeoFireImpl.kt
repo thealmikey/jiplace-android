@@ -1,4 +1,4 @@
-package com.almikey.jiplace.service.MyPlaceSearchService
+package com.almikey.jiplace.service.SearchService
 
 import android.util.Log
 import com.almikey.jiplace.model.MyLocation
@@ -11,7 +11,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import io.reactivex.Observable
-import java.util.*
 
 object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
 

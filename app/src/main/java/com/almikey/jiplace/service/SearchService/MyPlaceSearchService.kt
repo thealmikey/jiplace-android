@@ -1,4 +1,4 @@
-package com.almikey.jiplace.service.MyPlaceSearchService
+package com.almikey.jiplace.service.SearchService
 
 import com.almikey.jiplace.model.MyLocation
 import io.reactivex.Observable

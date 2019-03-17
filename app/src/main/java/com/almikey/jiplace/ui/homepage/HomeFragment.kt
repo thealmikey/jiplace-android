@@ -26,7 +26,7 @@ import com.afollestad.materialdialogs.customview.getCustomView
 
 import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.ui.activity.MyPlaceOtherCalendar
+import com.almikey.jiplace.ui.calendar.MyPlaceCalendarActivity
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
 import com.almikey.jiplace.util.LocationUtil.locationSettingsObservable
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
@@ -38,7 +38,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_home_jiplace.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -130,8 +129,8 @@ class HomeFragment : Fragment() {
         theProgressBar.visibility = View.GONE
 
         jiPlaceOther.setOnClickListener {
-            var intent = Intent(activity, MyPlaceOtherCalendar::class.java)
-            startActivityForResult(intent, 2)
+            var MyPlaceCalendar = Intent(activity, MyPlaceCalendarActivity::class.java)
+            startActivityForResult(MyPlaceCalendar, 2)
         }
 
         firebaseAuth.addAuthStateListener(authStateListener)

@@ -53,9 +53,10 @@
             android:theme="@style/AppTheme"
             tools:node="merge">
 
+        <uses-library android:name="android.test.runner" android:required="false" />
         <activity android:name=".ui.my_places.users_list.UserImageActivity">
         </activity>
-        <activity android:name=".ui.activity.MyPlaceOtherCalendar">
+        <activity android:name=".ui.calendar.MyPlaceCalendarActivity">
         </activity>
         <activity android:name=".ui.call.AudioCallActivity">
         </activity>

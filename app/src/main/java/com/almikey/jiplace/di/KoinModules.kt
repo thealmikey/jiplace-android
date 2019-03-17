@@ -16,58 +16,73 @@ import com.almikey.myplace.service.MyPlacesDao
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.module
+import org.koin.experimental.builder.factory
 
 
 class KoinModules {
     companion object {
-        val modules = module {
+        val modules = module(override = true) {
             single<MyPlacesRoomDatabase>("roomdb") {
                 Room.databaseBuilder(androidApplication(), MyPlacesRoomDatabase::class.java, "myplaces-db")
                     .build()
             }
-            single<MyPlacesDao>{
+            single<MyPlacesDao> {
                 get<MyPlacesRoomDatabase>().myPlacesDao()
             }
-            single<MyPlaceUserSharedDao>{
+            single<MyPlaceUserSharedDao> {
                 get<MyPlacesRoomDatabase>().myPlaceUserSharedDao()
             }
-            single<OtherUserDao>{
+            single<OtherUserDao> {
                 get<MyPlacesRoomDatabase>().otherUserDao()
             }
-            factory<MyPlaceLocalService> {
+            single<MyPlaceLocalService> {
                 MyPlaceLocalServiceRoomImpl(get())
             }
             // single instance of HelloRepository
-            factory<MyPlacesRepositoryImpl> {
-                MyPlacesRepositoryImpl(get(),get())
+            single<MyPlacesRepositoryImpl> {
+                MyPlacesRepositoryImpl(get(), get())
             }
             // MyViewModel ViewModel
             viewModel { MyPlaceViewModel(get()) }
 
-            factory<CurrentLocationRx>{
+            factory<CurrentLocationRx> {
                 CurrentLocationRx(androidApplication())
             }
 
-            factory<MyPlaceServerSyncService>{
+            single<MyPlaceServerSyncService> {
                 MyPlaceFirebaseSyncService(get())
             }
 
-            factory<MyPlaceServerSyncServiceImpl>{
+            single<MyPlaceServerSyncServiceImpl> {
                 MyPlaceServerSyncServiceImpl(get())
             }
 
         }
 
-        val roomTestModule = module {
+        //
+        val roomTestModule = module(override = true) {
 
-            single<MyPlacesRoomDatabase> {
+            single<MyPlacesRoomDatabase>("test_roomdb"){
                 // In-Memory database config
                 Room.inMemoryDatabaseBuilder(androidApplication(), MyPlacesRoomDatabase::class.java)
                     .allowMainThreadQueries()
                     .build()
             }
-            single<MyPlacesDao>{
-                get<MyPlacesRoomDatabase>().myPlacesDao()
+            single<MyPlacesDao>("test_myPlacesDao"){
+                get<MyPlacesRoomDatabase>(name="test_roomdb").myPlacesDao()
+            }
+            single<MyPlaceUserSharedDao>("test_myPlaceUserSharedDao") {
+                get<MyPlacesRoomDatabase>(name="test_roomdb").myPlaceUserSharedDao()
+            }
+            single<OtherUserDao>("test_otherUserDao"){
+                get<MyPlacesRoomDatabase>().otherUserDao()
+            }
+            single<MyPlaceLocalService>("test_myPlaceLocalService"){
+                MyPlaceLocalServiceRoomImpl(get(name="test_myPlacesDao"))
+            }
+            // single instance of HelloRepository
+            single<MyPlacesRepositoryImpl>("test_myPlaceRepositoryImpl"){
+                MyPlacesRepositoryImpl(get(name = "test_myPlaceLocalService"), get(name = "test_myPlaceUserSharedDao"))
             }
 
         }

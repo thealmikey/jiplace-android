@@ -19,11 +19,10 @@ import com.almikey.jiplace.database.dao.OtherUserDao
 import com.almikey.jiplace.model.MyLocation
 import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.model.OtherUser
-import com.almikey.jiplace.service.MyPlaceSearchService.MyPlaceSearchServiceGeoFireImpl.findNearByPeopleObservable
+import com.almikey.jiplace.service.SearchService.MyPlaceSearchServiceGeoFireImpl.findNearByPeopleObservable
 import com.almikey.jiplace.util.Common.timeMinuteGroupDown
 import com.almikey.jiplace.util.Common.timeMinuteGroupUp
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
