@@ -1,5 +1,7 @@
 package com.almikey.jiplace.util
 
+import java.util.*
+
 object Common {
     // functions to round time up and down, it takes time and time to round up
     // timeMinuteGroupUp(12:23,10) would produce 12:30, timeMinuteGroupDown(12:23,10) becomes 12:20
@@ -22,6 +24,10 @@ object Common {
         val fixedTime = Math.floor(timeIn15.toDouble())
         val timeInMs = fixedTime * min * 60 * 1000
         return timeInMs.toLong()
+    }
+
+    fun generateRandomUUID(): String {
+        return UUID.randomUUID().toString()
     }
 
 }

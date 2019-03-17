@@ -67,6 +67,7 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
         var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
         var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
 
+        //we filter using FirebaseAuth.uid to ensure the logged in user isn't returned as one of the results
         return nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct().filter {
             //                it != ChatSDK.currentUser().entityID
             it != FirebaseAuth.getInstance().uid

@@ -14,6 +14,7 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.ui.map.MyPlaceMapsActivity
+import com.almikey.jiplace.util.Common.generateRandomUUID
 import com.almikey.jiplace.util.TimePickerFragment
 import com.almikey.jiplace.worker.PlacePickerWorker
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
@@ -46,10 +47,6 @@ class MyPlaceCalendarActivity : AppCompatActivity() {
     lateinit var theUUId: String
     var theLateTime: Date? = null
 
-
-    fun generateRandomUUID(): String {
-        return UUID.randomUUID().toString()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
