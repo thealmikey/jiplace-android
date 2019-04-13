@@ -29,6 +29,7 @@ import com.uber.autodispose.autoDisposable
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.koin.android.ext.android.inject
 
@@ -73,36 +74,49 @@ class MyPlacesUserFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         mRecyclerview = view.findViewById(R.id.jiplace_users_inplace_recyclerview) as RecyclerView
         mRecyclerview.layoutManager = LinearLayoutManager(activity as Activity)
-        val groupAdapter = GroupAdapter<ViewHolder>()
+       // val groupAdapter = GroupAdapter<ViewHolder>()
 
         //we use distinct to ensure that if someone jiplaces in the same place more than once, it doesn't appear
         //as two cards in the observer's
 
         var findNearbyPeople = findNearByPeopleObservable(theTime, MyLocation(theLongitude!!, theLatitude!!))
 
-        findNearbyPeople.observeOn(Schedulers.io())
-            .autoDisposable(scopeProvider)
-            .subscribe { otherUser ->
+        var myPlaceUsers:ArrayList<MyPlaceUser> = arrayListOf()
+
+        //.autoDisposable(scopeProvider)
+        findNearbyPeople
+            .flatMap{ otherUser ->
+                var wrapper: UserWrapper = UserWrapper.initWithEntityId(otherUser);
+                wrapper.metaOn();
+                wrapper.onlineOn();
+                var user = wrapper.getModel();
                 addNearbyUserToDbAsSharedUser(otherUser)
 
-                fetchOtherUserMyPlacePicsObserverble(otherUser).distinct().subscribe { myPlacePics ->
-                    var wrapper: UserWrapper = UserWrapper.initWithEntityId(otherUser);
-                    wrapper.metaOn();
-                    wrapper.onlineOn();
-                    var user = wrapper.getModel();
-                    groupAdapter.add(
-                        MyplaceUserItem(
-                            this@MyPlacesUserFragment,
-                            theTime,
-                            user,
-                            otherUser!!,
-                            myPlacePics
-                        )
-                    )
-
+                fetchOtherUserMyPlacePicsObserverble(otherUser).distinct().flatMap {myPlacePics ->
+                    getHintFromTimeAndUuid(otherUser, fifteenMinGroupUp.toString())
+                        .mergeWith(getHintFromTimeAndUuid(otherUser, fifteenMinGroupDown.toString())).distinct()
+                       .subscribeOn(Schedulers.io())
+                       .map {
+                           var myPlaceUser = MyPlaceUser(
+                               "$it",
+                               theTime,
+                               user,
+                               otherUser!!,
+                               myPlacePics
+                           )
+                           myPlaceUsers.add(myPlaceUser)
+                           myPlaceUsers
+                       }
                 }
+
+            }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { myPlaceUsers ->
+                mRecyclerview.adapter = MyPlaceUserAdapter(this@MyPlacesUserFragment,myPlaceUsers)
+                mRecyclerview.adapter!!.notifyDataSetChanged()
+                Log.d("myPlaceUsers","i added a user n notified dataset")
             }
-        mRecyclerview.adapter = groupAdapter
+        mRecyclerview.adapter = MyPlaceUserAdapter(this@MyPlacesUserFragment,myPlaceUsers)
     }
 
 
@@ -171,5 +185,46 @@ class MyPlacesUserFragment : Fragment() {
                 Log.d("the UUID is", "${theUUID} new user")
             }
         })
+    }
+
+    fun getHintFromTimeAndUuid(userId:String,time:String):Observable<String>{
+      return  Observable.create<String>(){emitter->
+          var theHintRefId = FirebaseDatabase
+              .getInstance().getReference("myplaceusers/$userId/$time")
+
+          val hintIdListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    val hintId = dataSnapshot.getValue(String::class.java)
+                    var theHintRef = FirebaseDatabase
+                        .getInstance().getReference("myplaceusers/$userId/$hintId/hint")
+
+                    val hintListener = object : ValueEventListener {
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            // Get Post object and use the values to update the UI
+                            val hintText = dataSnapshot.getValue(String::class.java)
+                            Log.d("the hint",hintText!!)
+                           emitter.onNext(hintText!!)
+                            // ...
+                        }
+
+                        override fun onCancelled(databaseError: DatabaseError) {
+                            // Getting Post failed, log a message
+                            Log.w("getting hint text", "failed load hint itself :onCancelled", databaseError.toException())
+                            // ...
+                        }
+                    }
+                    theHintRef.addValueEventListener(hintListener)
+                    // ...
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("getting hint", "load hint id :onCancelled", databaseError.toException())
+                    // ...
+                }
+            }
+            theHintRefId.addValueEventListener(hintIdListener)
+        }
     }
 }

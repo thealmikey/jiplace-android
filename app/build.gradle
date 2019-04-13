@@ -71,7 +71,6 @@ android {
                                      "$projectDir/schemas".toString()]
             }
         }
-
     }
     buildTypes {
         release {
@@ -130,7 +129,8 @@ dependencies {
     androidTestUtil 'androidx.test:orchestrator:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     testImplementation 'org.robolectric:robolectric:4.1'
-    //   testImplementation "com.google.truth:truth:0.42"
+    debugImplementation 'androidx.fragment:fragment-testing:1.1.0-alpha05'
+    testImplementation "com.google.truth:truth:0.43"
     // https://mvnrepository.com/artifact/com.google.android.material/material
     implementation group: 'com.google.android.material', name: 'material', version: '1.0.0'
     implementation 'com.afollestad.material-dialogs:core:2.0.0-rc7'
@@ -191,11 +191,11 @@ dependencies {
 
         implementation 'ru.cleverpumpkin:crunchycalendar:1.1.0'
 
-        implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.6.0'
-        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.6.0'
-        implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.6.0'
-        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.6.0'
-        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.6.0'
+        implementation 'co.chatsdk.chatsdk:chat-sdk-core:4.6.5'
+        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-adapter:4.6.5'
+        implementation 'co.chatsdk.chatsdk:chat-sdk-ui:4.6.5'
+        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-file-storage:4.6.5'
+        implementation 'co.chatsdk.chatsdk:chat-sdk-firebase-push:4.6.5'
 
         //firebase
         implementation 'com.google.firebase:firebase-core:16.0.7'
@@ -247,4 +247,11 @@ dependencies {
 //    implementation ("android.arch.work:work-runtime:$work_version") {
 //        exclude group: 'com.google.guava', module: 'listenablefuture'
 //    }
-    }
+
+    // https://mvnrepository.com/artifact/com.pholser/junit-quickcheck-core
+    testCompile group: 'com.pholser', name: 'junit-quickcheck-core', version: '0.8.2'
+// https://mvnrepository.com/artifact/com.pholser/junit-quickcheck-generators
+    testCompile group: 'com.pholser', name: 'junit-quickcheck-generators', version: '0.8.2'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+
+}

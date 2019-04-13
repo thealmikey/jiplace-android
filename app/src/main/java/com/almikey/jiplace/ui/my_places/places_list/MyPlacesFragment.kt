@@ -114,8 +114,7 @@ class MyPlacesFragment : Fragment(), KoinComponent {
         registerForContextMenu(mRecyclerview);
     }
 
-
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         val inflater = activity!!.menuInflater
         inflater.inflate(R.menu.jiplace_context_menu, menu)

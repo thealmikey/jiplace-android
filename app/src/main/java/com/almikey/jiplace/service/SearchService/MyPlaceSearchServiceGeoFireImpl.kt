@@ -7,9 +7,7 @@ import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import io.reactivex.Observable
 
 object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
@@ -22,7 +20,7 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
         var fifteenMinGroupUp = Common.timeMinuteGroupUp(theTime!!, 15).toString()
         var fifteenMinGroupDown = Common.timeMinuteGroupDown(theTime!!, 15).toString()
 
-        fun nearByPeopleObservableRoundBy(timeGroup:String): Observable<String> = Observable.create<String> { emitter ->
+        fun nearByUserKeyObservableRoundBy(timeGroup:String): Observable<String> = Observable.create<String> { emitter ->
             var ref1: DatabaseReference =
                 FirebaseDatabase.getInstance().getReference("jiplaces/fifteen/$timeGroup")
             var geoFire: GeoFire = GeoFire(ref1);
@@ -64,13 +62,31 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
             });
 
         }
-        var nearByPeopleObservableRoundDown = nearByPeopleObservableRoundBy(fifteenMinGroupDown)
-        var nearByPeopleObservableRoundUp = nearByPeopleObservableRoundBy(fifteenMinGroupUp)
+        var nearByUserKeyObservableRoundDown = nearByUserKeyObservableRoundBy(fifteenMinGroupDown)
+        var nearByUserKeyObservableRoundUp = nearByUserKeyObservableRoundBy(fifteenMinGroupUp)
 
         //we filter using FirebaseAuth.uid to ensure the logged in user isn't returned as one of the results
-        return nearByPeopleObservableRoundDown.mergeWith(nearByPeopleObservableRoundUp).distinct().filter {
-            //                it != ChatSDK.currentUser().entityID
-            it != FirebaseAuth.getInstance().uid
+        return nearByUserKeyObservableRoundDown.mergeWith(nearByUserKeyObservableRoundUp).distinct().flatMap{
+            Observable.create<String> { emitter ->
+            var ref: DatabaseReference = FirebaseDatabase.getInstance().getReference("jiplaces/jiplacesKeyValue/$it")
+            val userIdListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    val userId = dataSnapshot.getValue(String::class.java)!!
+                    emitter.onNext(userId)
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    emitter.onError(Throwable("couldn't get user"))
+                    // ...
+                }
+            }
+                ref.addValueEventListener(userIdListener)
+            }
+
+        }.distinct().filter {
+            it != FirebaseAuth.getInstance().uid!!
         }
     }
 }

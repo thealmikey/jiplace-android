@@ -1,19 +1,14 @@
 package com.almikey.jiplace.service.ServerSyncService
 
 import android.util.Log
-import co.chatsdk.core.dao.DaoCore
-import co.chatsdk.core.interfaces.ThreadType
-import co.chatsdk.core.session.ChatSDK
-import co.chatsdk.firebase.wrappers.UserWrapper
-import com.almikey.jiplace.database.dao.MyPlaceUserSharedDao
 import com.almikey.jiplace.model.MyPlace
-import com.almikey.jiplace.model.MyPlaceUserShared
 import com.almikey.jiplace.repository.MyPlacesRepositoryImpl
 import com.almikey.jiplace.util.Common
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -21,10 +16,7 @@ import com.google.firebase.database.FirebaseDatabase
 import io.reactivex.internal.operators.completable.CompletableFromAction
 import io.reactivex.schedulers.Schedulers
 import org.koin.standalone.KoinComponent
-import org.koin.standalone.inject
-import java.util.HashMap
-import com.google.firebase.database.DataSnapshot
-
+import java.util.*
 
 
 class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryImpl) : MyPlaceServerSyncService,
@@ -35,79 +27,136 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
         .getInstance().reference
 
     override fun createMyPlacesOnServer(vararg myPlace: MyPlace): Task<Boolean> {
-        val dbSource = TaskCompletionSource<Boolean>()
-        val dbTask:Task<Boolean> = dbSource.getTask();
-            myPlace.forEach {
-                //round up and round down time to ensure user can be found in as many groups as possible
+
+        lateinit var roundedUpJiplaceKey: String
+        lateinit var roundedDownJiplaceKey: String
+
+
+        val taskValueUp = TaskCompletionSource<Boolean>()
+        //Task<True> means the JiPlaces was successfully saved on the server
+        val taskUp: Task<Boolean> = taskValueUp.getTask();
+        val taskValueDown = TaskCompletionSource<Boolean>()
+        //Task<True> means the JiPlaces was successfully saved on the server
+        val taskDown: Task<Boolean> = taskValueDown.getTask();
+        myPlace.forEach {
+            //round up and round down time to ensure user can be found in as many groups as possible
 //            var fiveMinGroupUp = timeMinuteGroupUp(it.time.time, 5).toString()
-                var fifteenMinGroupUp = Common.timeMinuteGroupUp(it.time.time, 15).toString()
+            var fifteenMinGroupUp = Common.timeMinuteGroupUp(it.time.time, 15).toString()
 //            var fiveMinGroupDown = timeMinuteGroupDown(it.time.time, 5).toString()
-                var fifteenMinGroupDown = Common.timeMinuteGroupDown(it.time.time, 15).toString()
+            var fifteenMinGroupDown = Common.timeMinuteGroupDown(it.time.time, 15).toString()
 
 
-                var ref: DatabaseReference = FirebaseDatabase
-                    .getInstance()
-                    .getReference("jiplaces/fifteen/$fifteenMinGroupUp");
-                var geoFireTimeRoundedUp: GeoFire = GeoFire(ref);
-                var refDown: DatabaseReference = FirebaseDatabase
-                    .getInstance()
-                    .getReference("jiplaces/fifteen/$fifteenMinGroupDown");
+            var dbRef: DatabaseReference = FirebaseDatabase
+                .getInstance()
+                .getReference();
+            var jiPlacesKeyValue: DatabaseReference = FirebaseDatabase
+                .getInstance()
+                .getReference("jiplaces/jiplacesKeyValue");
 
-                var geoFireTimeRoundedDown: GeoFire = GeoFire(refDown);
-                val firebaseUser = FirebaseAuth.getInstance().currentUser
-                if (firebaseUser != null) {
-                    var theFbId = firebaseUser.uid
-                    geoFireTimeRoundedUp.setLocation(
-                        "$theFbId",
-                        GeoLocation(it.location.latitude.toDouble(), it.location.longitude.toDouble()),
-                        object : GeoFire.CompletionListener {
-                            override fun onComplete(key: String?, error: DatabaseError?) {
-                                if (error != null) {
-                                    dbSource.setResult(true);
-                                    Log.d("periodic firebase", "firebase unable to periodically collect places")
-                                } else {
-                                    dbSource.setResult(false)
-                                    Log.d(
-                                        "periodic firebase",
-                                        "firebasewas successful in periodically collecting places"
-                                    )
-                                    var newPlace: MyPlace = it.copy(firebaseSync = true)
-                                    CompletableFromAction {
-                                        myPlacesRepositoryImpl.update(newPlace).subscribe()
-                                    }.subscribeOn(Schedulers.io()).subscribe {
-                                        Log.d("moved threads", "in order to update db")
+            var refUp: DatabaseReference = FirebaseDatabase
+                .getInstance()
+                .getReference("jiplaces/fifteen/$fifteenMinGroupDown");
+            var refDown: DatabaseReference = FirebaseDatabase
+                .getInstance()
+                .getReference("jiplaces/fifteen/$fifteenMinGroupDown");
+
+
+                roundedUpJiplaceKey = generateFirebaseItemKey("jiplaces/fifteen/$fifteenMinGroupUp")!!
+                roundedDownJiplaceKey = generateFirebaseItemKey("jiplaces/fifteen/$fifteenMinGroupDown")!!
+
+            Log.d("roundUpJiplaceKey",roundedUpJiplaceKey)
+            Log.d("roundDownJiplaceKey",roundedDownJiplaceKey)
+
+                if (roundedDownJiplaceKey != null && roundedUpJiplaceKey != null) {
+                    var geoFireTimeRoundedUp: GeoFire = GeoFire(refUp);
+                    var geoFireTimeRoundedDown: GeoFire = GeoFire(refDown);
+                    val firebaseUser = FirebaseAuth.getInstance().currentUser
+                    if (firebaseUser != null) {
+                        var theFbId = firebaseUser.uid
+                        geoFireTimeRoundedUp.setLocation(
+                            roundedUpJiplaceKey,
+                            GeoLocation(it.location.latitude, it.location.longitude),
+                            object : GeoFire.CompletionListener {
+                                override fun onComplete(key: String?, error: DatabaseError?) {
+                                    if (error == null) {
+
+
+                                        val childUpdates =
+                                            createMyPlaceHashMap(theFbId, roundedUpJiplaceKey, fifteenMinGroupUp, it)
+
+                                        dbRef.updateChildren(childUpdates).addOnCompleteListener {
+                                            if (it.isSuccessful) {
+                                                Log.d("serversync", "managed to create in firebase")
+                                            } else {
+                                                it.addOnFailureListener {
+                                                    Log.d("serversync", "the exception is ${it.message}")
+                                                }
+                                            }
+                                        }
+                                        Log.d("periodic firebase", "firebase unable to periodically collect places")
+
+                                        var newPlace: MyPlace = it.copy(firebaseSync = true)
+                                        myPlacesRepositoryImpl.update(newPlace).subscribeOn(Schedulers.io())
+                                            .doAfterSuccess {
+                                                taskValueUp.setResult(true);
+                                            }.doOnError {
+                                                taskValueUp.setResult(false)
+                                            }
+                                            .blockingGet()
+                                    } else {
+
+                                        Log.d(
+                                            "periodic firebase",
+                                            "firebase was unsuccessful in periodically collecting places"
+                                        )
+
                                     }
                                 }
-                            }
-                        });
-                    geoFireTimeRoundedDown.setLocation(
-                        "$theFbId",
-                        GeoLocation(it.location.latitude.toDouble(), it.location.longitude.toDouble()),
-                        object : GeoFire.CompletionListener {
-                            override fun onComplete(key: String?, error: DatabaseError?) {
-                                if (error != null) {
-
-                                    Log.d("periodic firebase", "firebase unable to periodically collect places")
-                                } else {
-                                    Log.d(
-                                        "periodic firebase",
-                                        "firebasewas successful in periodically collecting places"
-                                    )
-                                    var newPlace: MyPlace = it.copy(firebaseSync = true)
-                                    CompletableFromAction {
-                                        myPlacesRepositoryImpl.update(newPlace).subscribe()
-                                    }.subscribeOn(Schedulers.io()).subscribe {
-                                        Log.d("moved threads", "in order to update db")
+                            });
+                        geoFireTimeRoundedDown.setLocation(
+                            roundedDownJiplaceKey,
+                            GeoLocation(it.location.latitude, it.location.longitude),
+                            object : GeoFire.CompletionListener {
+                                override fun onComplete(key: String?, error: DatabaseError?) {
+                                    if (error == null) {
+                                        val childUpdates = createMyPlaceHashMap(
+                                            theFbId,
+                                            roundedDownJiplaceKey,
+                                            fifteenMinGroupDown,
+                                            it
+                                        )
+                                        Log.d("periodic firebase", "firebase able to periodically collect places")
+                                        dbRef.updateChildren(childUpdates)
+                                        var newPlace: MyPlace = it.copy(firebaseSync = true)
+                                        myPlacesRepositoryImpl.update(newPlace).subscribeOn(Schedulers.io())
+                                            .doAfterSuccess {
+                                                taskValueDown.setResult(true);
+                                            }.doOnError {
+                                                taskValueDown.setResult(false)
+                                            }.blockingGet()
+                                    } else {
+                                        Log.d(
+                                            "periodic firebase",
+                                            "firebasewas failed in periodically collecting places"
+                                        )
                                     }
                                 }
-                            }
-                        });
+                            });
 
+                    }
+
+                } else {
+                    Log.d("jiplace create", "the keys are null")
                 }
 
-            }
+        }
 
-        return dbTask
+        return Tasks.whenAll(taskUp, taskDown).onSuccessTask {
+            var boolSrc: TaskCompletionSource<Boolean> = TaskCompletionSource<Boolean>();
+            var boolTask: Task<Boolean> = boolSrc.getTask()
+            boolSrc.setResult(true)
+            boolTask
+        }
     }
 
     override fun deleteMyPlaceOnServer(myPlace: MyPlace): Task<Void> {
@@ -130,4 +179,33 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
         childUpdates["jiplaces/fifteen/$fifteenMinGroupDown/$theFbId"] = null
         return ref.updateChildren(childUpdates)
     }
+
+    fun generateFirebaseItemKey(dbRefUrl: String): String? {
+        var dbRef = FirebaseDatabase
+            .getInstance()
+            .getReference(dbRefUrl);
+        var key = dbRef.push().key
+        if (key == null) {
+            Log.d("generateFbItemKey", "Couldn't get push key for posts")
+            return null
+        }else{
+            Log.d("generateFbItemKey", "generated key for posts")
+            return key
+        }
+    }
+}
+
+fun createMyPlaceHashMap(
+    firebaseId: String,
+    roundedJiplaceKey: String,
+    timeGroup: String,
+    myPlace: MyPlace
+): HashMap<String, Any> {
+    val childUpdates = HashMap<String, Any>()
+    childUpdates["jiplaces/jiplacesKeyValue/$roundedJiplaceKey"] = firebaseId
+    childUpdates["myplaceusers/$firebaseId/$timeGroup"] = roundedJiplaceKey!!
+    childUpdates["myplaceusers/$firebaseId/$roundedJiplaceKey/hint"] = myPlace.hint
+    childUpdates["myplaceusers/$firebaseId/$roundedJiplaceKey/dateAdded"] =
+        myPlace.dateAdded.toString()
+    return childUpdates
 }
