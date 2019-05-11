@@ -35,6 +35,8 @@ class MyLocationWorker(context: Context, params: WorkerParameters) : Worker(cont
     override fun doWork(): Result {
         try {
             runBlocking {
+                //GPS sensors produces very many locations points per second. We take 4 of them and average them out to make
+                // a location
                 var locationList: List<Location> = currLocRx.observeLocation.subscribeOn(AndroidSchedulers.mainThread())
                     .observeOn(Schedulers.io())
                     .distinct().take(4).blockingIterable().toList()

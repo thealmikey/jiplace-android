@@ -60,7 +60,7 @@ class MyPlaceMapsActivity : AppCompatActivity(), OnMapReadyCallback {
         autocompleteFragment =
             supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
-        autocompleteFragment.setCountry("KE")
+//        autocompleteFragment.setCountry("KE")
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager

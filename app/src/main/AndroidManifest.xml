@@ -83,7 +83,7 @@
                 android:parentActivityName=".MainActivity">
         </activity>
         <activity
-                android:name="co.chatsdk.ui.main.MainActivity"
+                android:name="co.chatsdk.ui.main.MainDrawActivity"
                 android:parentActivityName=".MainActivity"
                 tools:replace="android:parentActivityName"/>
 

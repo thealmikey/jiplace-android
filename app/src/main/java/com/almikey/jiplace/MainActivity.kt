@@ -12,8 +12,8 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 
-class MainActivity : AppCompatActivity() {
 
+class MainActivity : AppCompatActivity() {
 
     val firebaseAuth: FirebaseAuth by lazy<FirebaseAuth> { FirebaseAuth.getInstance() }
 
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.jiplace_chats_menu -> {
                 if (firebaseAuth.uid != null) {
-                    var intent = Intent(this@MainActivity, co.chatsdk.ui.main.MainActivity::class.java)
+                    var intent = Intent(this@MainActivity, co.chatsdk.ui.main.MainDrawActivity::class.java)
                     startActivity(intent)
                     return@OnNavigationItemSelectedListener true
                 } else {
