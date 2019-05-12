@@ -55,10 +55,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/theProgressBar"
-            android:layout_marginTop="184dp"
+            android:layout_marginTop="60dp"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@+id/jiPlaceNow"
             android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
             app:layout_constraintEnd_toStartOf="@+id/jiPlaceOther" android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"/>
-
+            android:layout_marginRight="8dp" app:layout_constraintHorizontal_bias="0.448"/>
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/myPlacesFragmentNested"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp" android:layout_marginRight="8dp"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp" android:layout_marginTop="32dp"
+            android:paddingBottom="120dp"
+            app:layout_constraintTop_toBottomOf="@+id/jiPlaceNow"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

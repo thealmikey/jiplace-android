@@ -31,8 +31,8 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
         lateinit var roundedUpJiplaceKey: String
         lateinit var roundedDownJiplaceKey: String
 
-
         val taskValueUp = TaskCompletionSource<Boolean>()
+
         //Task<True> means the JiPlaces was successfully saved on the server
         val taskUp: Task<Boolean> = taskValueUp.getTask();
         val taskValueDown = TaskCompletionSource<Boolean>()

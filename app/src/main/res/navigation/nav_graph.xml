@@ -19,5 +19,6 @@
     />
     <fragment android:id="@+id/myPlacesUserFragment"
               android:name="com.almikey.jiplace.ui.my_places.users_list.MyPlacesUserFragment"
-              android:label="fragment_my_places_user" tools:layout="@layout/jiplaces_users_inplace_recyclerview"/>
+              android:label="fragment_my_places_user"
+              tools:layout="@layout/jiplaces_users_inplace_recyclerview"/>
 </navigation>

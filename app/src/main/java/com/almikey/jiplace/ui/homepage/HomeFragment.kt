@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.work.*
 import co.chatsdk.core.session.ChatSDK
 import co.chatsdk.core.session.NM
@@ -28,6 +29,8 @@ import com.almikey.jiplace.R
 import com.almikey.jiplace.model.MyPlace
 import com.almikey.jiplace.ui.calendar.MyPlaceCalendarActivity
 import com.almikey.jiplace.ui.my_places.places_list.MyPlaceViewModel
+import com.almikey.jiplace.ui.my_places.places_list.MyPlacesFragment
+import com.almikey.jiplace.ui.my_places.places_list.MyPlacesFragmentOnHome
 import com.almikey.jiplace.util.LocationUtil.locationSettingsObservable
 import com.almikey.jiplace.util.ThreadCleanUp.deleteThreadsFromOtherSide
 import com.almikey.jiplace.worker.HintPickerWorker
@@ -183,6 +186,13 @@ class HomeFragment : Fragment() {
                     }
             }
         }
+
+        var ft: FragmentTransaction = getChildFragmentManager().beginTransaction();
+        var myPlacesFrag = MyPlacesFragmentOnHome();
+        ft.replace(R.id.myPlacesFragmentNested, myPlacesFrag);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -230,19 +240,19 @@ class HomeFragment : Fragment() {
     }
 
     fun savePlaceNowWithoutHintText(placeUuid: String) {
-            myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid))
-                .subscribeOn(Schedulers.io()).autoDisposable(scopeProvider)
-                .subscribe({
-                    var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
-                        Data.Builder()
-                            .putString("UuidKey", placeUuid).build()
-                    )
-                        .build()
-                    WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
-                    Log.d("save place now", "was able to save placenow without hint,worker started")
-                }, {
-                    Log.d("save place now", "was unable to save placenow without hint, err message is ${it.message}")
-                })
+        myPlacesViewModel.addPlace(MyPlace(uuidString = placeUuid))
+            .subscribeOn(Schedulers.io()).autoDisposable(scopeProvider)
+            .subscribe({
+                var locWorker = OneTimeWorkRequestBuilder<MyLocationWorker>().addTag("loc-rx").setInputData(
+                    Data.Builder()
+                        .putString("UuidKey", placeUuid).build()
+                )
+                    .build()
+                WorkManager.getInstance().beginWith(locWorker).then(firebaseWorker).enqueue()
+                Log.d("save place now", "was able to save placenow without hint,worker started")
+            }, {
+                Log.d("save place now", "was unable to save placenow without hint, err message is ${it.message}")
+            })
     }
 
     fun savePlaceNowWithHintText(placeUuid: String, hintText: String) {
