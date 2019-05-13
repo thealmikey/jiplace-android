@@ -139,6 +139,8 @@ class HomeFragment : Fragment() {
         firebaseAuth.addAuthStateListener(authStateListener)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
         jiPlaceNow.setOnClickListener {
+            //turn off button on first click to stop multiple activations by multiple clicks
+            jiPlaceNow.isEnabled = false
             var theUUId = UUID.randomUUID().toString()
             fun askForHint(): Unit {
                 lateinit var hintText: String
@@ -151,11 +153,14 @@ class HomeFragment : Fragment() {
 
                 dialog.negativeButton {
                     savePlaceNowWithoutHintText(theUUId)
+                    //turn button back on
+                    jiPlaceNow.isEnabled = true
                 }
 
                 dialog.positiveButton {
                     hintText = theText?.text.toString()
                     savePlaceNowWithHintText(theUUId, hintText)
+                    jiPlaceNow.isEnabled = true
                 }
 
                 return Unit

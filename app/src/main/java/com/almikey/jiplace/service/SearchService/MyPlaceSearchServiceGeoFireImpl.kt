@@ -72,8 +72,12 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
             val userIdListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     // Get Post object and use the values to update the UI
-                    val userId = dataSnapshot.getValue(String::class.java)!!
-                    emitter.onNext(userId)
+                    val userId = dataSnapshot.getValue(String::class.java)
+                    if(userId==null){
+                        emitter.onNext("")
+                    }else{
+                        emitter.onNext(userId)
+                    }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
@@ -86,7 +90,7 @@ object MyPlaceSearchServiceGeoFireImpl:MyPlaceSearchService {
             }
 
         }.distinct().filter {
-            it != FirebaseAuth.getInstance().uid!!
+            it != FirebaseAuth.getInstance().uid!! && it.isNotEmpty()
         }
     }
 }
