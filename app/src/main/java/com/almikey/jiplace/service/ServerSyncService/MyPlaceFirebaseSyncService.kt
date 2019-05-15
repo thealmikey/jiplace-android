@@ -24,18 +24,18 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
     var ref: DatabaseReference = FirebaseDatabase
         .getInstance().reference
 
-    override fun createMyPlacesOnServer(vararg myPlace: MyPlace): Task<Boolean> {
+    override fun createMyPlacesOnServer(vararg myPlace: MyPlace) {
 
         lateinit var roundedUpJiplaceKey: String
         lateinit var roundedDownJiplaceKey: String
 
         val taskValueUp = TaskCompletionSource<Boolean>()
-
-        //Task<True> means the JiPlaces was successfully saved on the server
-        val taskUp: Task<Boolean> = taskValueUp.getTask();
-        val taskValueDown = TaskCompletionSource<Boolean>()
-        //Task<True> means the JiPlaces was successfully saved on the server
-        val taskDown: Task<Boolean> = taskValueDown.getTask();
+//
+//        //Task<True> means the JiPlaces was successfully saved on the server
+//        val taskUp: Task<Boolean> = taskValueUp.getTask();
+//        val taskValueDown = TaskCompletionSource<Boolean>()
+//        //Task<True> means the JiPlaces was successfully saved on the server
+//        val taskDown: Task<Boolean> = taskValueDown.getTask();
         myPlace.forEach {
             //round up and round down time to ensure user can be found in as many groups as possible
 //            var fiveMinGroupUp = timeMinuteGroupUp(it.time.time, 5).toString()
@@ -94,12 +94,10 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
                                     Log.d("periodic firebase", "firebase unable to periodically collect places")
 
                                     var newPlace: MyPlace = it.copy(firebaseSync = true)
-                                    myPlacesRepositoryImpl.update(newPlace).subscribeOn(Schedulers.io()).takeIf {
-                                        !taskUp.isComplete
-                                    }!!.doAfterSuccess {
-                                        taskValueUp.setResult(true);
+                                    myPlacesRepositoryImpl.update(newPlace).subscribeOn(Schedulers.io()).doAfterSuccess {
+                                      Log.d("server sync","success")
                                     }.doOnError {
-                                        taskValueUp.setResult(false)
+                                        Log.d("server sync","failed")
                                     }
                                         .blockingGet()
                                 } else {
@@ -128,12 +126,10 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
                                     dbRef.updateChildren(childUpdates)
                                     var newPlace: MyPlace = it.copy(firebaseSync = true)
                                     myPlacesRepositoryImpl.update(newPlace).subscribeOn(Schedulers.io())
-                                        .takeIf {
-                                            !taskDown.isComplete
-                                        }!!.doAfterSuccess {
-                                        taskValueDown.setResult(true);
+                                        .doAfterSuccess {
+                                       Log.d("server sync","success")
                                     }.doOnError {
-                                        taskValueDown.setResult(false)
+                                            Log.d("server sync","failed")
                                     }.blockingGet()
                                 } else {
                                     Log.d(
@@ -152,12 +148,12 @@ class MyPlaceFirebaseSyncService(val myPlacesRepositoryImpl: MyPlacesRepositoryI
 
         }
 
-        return Tasks.whenAll(taskUp, taskDown).onSuccessTask {
-            var boolSrc: TaskCompletionSource<Boolean> = TaskCompletionSource<Boolean>();
-            var boolTask: Task<Boolean> = boolSrc.getTask()
-            boolSrc.setResult(true)
-            boolTask
-        }
+//        return Tasks.whenAll(taskUp, taskDown).onSuccessTask {
+//            var boolSrc: TaskCompletionSource<Boolean> = TaskCompletionSource<Boolean>();
+//            var boolTask: Task<Boolean> = boolSrc.getTask()
+//            boolSrc.setResult(true)
+//            boolTask
+//        }
     }
 
     override fun deleteMyPlaceOnServer(myPlace: MyPlace): Task<Void> {

@@ -209,6 +209,7 @@ class MyPlacesFragmentOnHome : Fragment(), KoinComponent {
     @SuppressLint("AutoDispose")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        mRecyclerview.adapter!!.notifyDataSetChanged()
         if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
             if (data != null) {
 
@@ -222,19 +223,19 @@ class MyPlacesFragmentOnHome : Fragment(), KoinComponent {
                 var thePlaces = myPlaces.toMutableList()
                 thePlaces[thePosition] =
                     thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = "placeholder"))
-                myPlacesAdapter.myplaces = thePlaces.asReversed()
-                mRecyclerview.adapter!!.notifyItemChanged(thePosition)
+                myPlacesAdapter.myplaces = thePlaces
+                mRecyclerview.adapter!!.notifyDataSetChanged()
 
             } else {
                 var thePosition = myPlacesAdapter.thePosition
                 var thePlaces = myPlaces.toMutableList()
                 thePlaces[thePosition] = thePlaces[thePosition].copy(profile = MyPlaceProfilePic(localPicUrl = ""))
-                myPlacesAdapter.myplaces = thePlaces.asReversed()
+                myPlacesAdapter.myplaces = thePlaces
                 mRecyclerview.adapter = MyPlaceAdapter(this, thePlaces)
-                mRecyclerview.adapter!!.notifyItemChanged(thePosition)
+                mRecyclerview.adapter!!.notifyDataSetChanged()
             }
         }
-
+        mRecyclerview.adapter!!.notifyDataSetChanged()
 
     }
 

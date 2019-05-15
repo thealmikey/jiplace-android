@@ -8,7 +8,7 @@ class MyPlaceServerSyncServiceImpl(var myPlaceServerSyncService: MyPlaceServerSy
         return myPlaceServerSyncService.deleteMyPlaceOnServer(myPlace)
     }
 
-    override fun createMyPlacesOnServer(vararg myPlace: MyPlace):Task<Boolean> {
+    override fun createMyPlacesOnServer(vararg myPlace: MyPlace) {
         return myPlaceServerSyncService.createMyPlacesOnServer(*myPlace)
     }
 
